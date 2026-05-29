@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Trustinn Windows App <span id="appVersion">v0.0.1</span></h1>
+    <div class="status">
+        <strong>Update status</strong>
+        <p id="updateStatus">Checking for updates...</p>
+        <button id="restartButton" style="display:none; margin-top:12px;">Restart and install update</button>
+    </div>
+
+    <script>
+        const updateStatus = document.getElementById('updateStatus');
+        const restartButton = document.getElementById('restartButton');
+        const appVersion = document.getElementById('appVersion');
+
+        if (window.electronAPI) {
+            window.electronAPI.getAppVersion().then((version) => {
+                appVersion.innerText = `v${version}`;
+            });
+
+            window.electronAPI.onUpdateStatus((message) => {
+                updateStatus.innerText = message;
+                if (message.includes('downloaded')) {
+                    restartButton.style.display = 'inline-block';
+                }
+            });
+
+            restartButton.addEventListener('click', () => {
+                window.electronAPI.requestRestartAndUpdate();
+            });
+        } else {
+            appVersion.innerText = 'browser';
+            updateStatus.innerText = 'Running in browser mode. Electron update events are unavailable.';
+        }
+    </script>
+</body>
+</html>
