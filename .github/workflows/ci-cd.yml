@@ -22,7 +22,7 @@ jobs:
 
       - name: Set package version from tag
         if: startsWith(github.ref, 'refs/tags/v')
-        run: echo "PACKAGE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: npm version "${{ github.ref_name }}" --no-git-tag-version
 
       - name: Set prerelease package version
         if: github.ref == 'refs/heads/main'
@@ -30,15 +30,18 @@ jobs:
           npm version prerelease --preid=build --no-git-tag-version
           echo "PACKAGE_VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_ENV
 
-      - name: Build Windows app in Docker
-        uses: addnab/docker-run-action@v3
-        with:
-          image: nitminer/trustinn-desktop:latest
-          options: --workdir /workspace -v "${{ github.workspace }}:/workspace"
-          run: |
-            npm install
-            npm run dist
-            ls -al dist
+      - name: Build local Docker image
+        run: docker build -t trustinn-windows-builder .
+
+      - name: Run Windows app build in Docker
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            trustinn-windows-builder
+
+      - name: List build artifacts
+        run: ls -al dist
 
       - name: Create GitHub release and upload assets
         if: startsWith(github.ref, 'refs/tags/v')
