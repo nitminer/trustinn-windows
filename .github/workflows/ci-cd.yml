@@ -20,17 +20,15 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Set package version
+      - name: Set package version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: echo "PACKAGE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Set prerelease package version
+        if: github.ref == 'refs/heads/main'
         run: |
-          case "$GITHUB_REF" in
-            refs/tags/v*)
-              echo "PACKAGE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-              ;;
-            *)
-              npm version prerelease --preid=build --no-git-tag-version
-              echo "PACKAGE_VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_ENV
-              ;;
-          esac
+          npm version prerelease --preid=build --no-git-tag-version
+          echo "PACKAGE_VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_ENV
 
       - name: Build Windows app in Docker
         uses: addnab/docker-run-action@v3
