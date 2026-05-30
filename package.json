@@ -1,6 +1,6 @@
 {
   "name": "trustinn-windowss",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Trustinn Windows Electron application",
   "main": "main.js",
   "scripts": {
@@ -37,11 +37,15 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },
