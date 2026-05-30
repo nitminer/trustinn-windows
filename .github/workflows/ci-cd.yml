@@ -106,5 +106,3 @@ jobs:
             **Auto-Update:** The app includes built-in auto-update support and will notify users when this version is available.
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
