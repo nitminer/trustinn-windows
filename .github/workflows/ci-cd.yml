@@ -11,6 +11,8 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -92,7 +94,6 @@ jobs:
         with:
           files: |
             dist/**/*.exe
-            dist/**/*.nsis.7z
             dist/latest.yml
           tag_name: ${{ github.ref_name }}
           name: Trustinn Windows App ${{ github.ref_name }}
@@ -101,7 +102,7 @@ jobs:
             
             **Downloads:**
             - Installer (NSIS): Recommended for most users
-            - Portable (ZIP): No installation required
+            - Portable: No installation required
             
             **Auto-Update:** The app includes built-in auto-update support and will notify users when this version is available.
           draft: false
