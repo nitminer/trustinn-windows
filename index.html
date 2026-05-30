@@ -3,39 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Trustinn Windows App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .version {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .status-section {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .status-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        #updateStatus {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        #restartButton {
+            width: 100%;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: none;
+        }
+        #restartButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        #restartButton:active {
+            transform: translateY(0);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
 </head>
 <body>
-    <h1>Trustinn Windows App <span id="appVersion">v0.0.2</span></h1>
-    <div class="status">
-        <strong>Update status</strong>
-        <p id="updateStatus">Checking for updates...</p>
-        <button id="restartButton" style="display:none; margin-top:12px;">Restart and install update</button>
+    <div class="container">
+        <h1>🚀 Trustinn Windows App</h1>
+        <div class="version">Version: <span id="appVersion">v0.0.2</span></div>
+        
+        <div class="status-section">
+            <div class="status-label">Update Status</div>
+            <p id="updateStatus">Initializing...</p>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <button id="restartButton">Restart and Install Update</button>
+        </div>
     </div>
 
     <script>
         const updateStatus = document.getElementById('updateStatus');
         const restartButton = document.getElementById('restartButton');
         const appVersion = document.getElementById('appVersion');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
 
         if (window.electronAPI) {
+            // Get and display app version
             window.electronAPI.getAppVersion().then((version) => {
                 appVersion.innerText = `v${version}`;
+            }).catch(err => {
+                console.error('Error getting app version:', err);
             });
 
+            // Listen for update status messages
             window.electronAPI.onUpdateStatus((message) => {
+                console.log('[UI] Update status:', message);
                 updateStatus.innerText = message;
-                if (message.includes('downloaded')) {
+                
+                // Show progress bar if downloading
+                if (message.includes('Downloading')) {
+                    progressBar.style.display = 'block';
+                    const match = message.match(/(\d+)%/);
+                    if (match) {
+                        progressFill.style.width = match[1] + '%';
+                    }
+                } else {
+                    progressBar.style.display = 'none';
+                }
+                
+                // Show restart button when update is ready
+                if (message.includes('downloaded') || message.includes('Click')) {
                     restartButton.style.display = 'inline-block';
+                } else {
+                    restartButton.style.display = 'none';
                 }
             });
 
+            // Handle restart and update
             restartButton.addEventListener('click', () => {
+                console.log('[UI] User clicked restart button');
+                updateStatus.innerText = 'Installing update and restarting...';
                 window.electronAPI.requestRestartAndUpdate();
             });
         } else {
             appVersion.innerText = 'browser';
-            updateStatus.innerText = 'Running in browser mode. Electron update events are unavailable.';
+            updateStatus.innerText = 'Running in browser mode. Auto-update is disabled.';
         }
     </script>
 </body>
