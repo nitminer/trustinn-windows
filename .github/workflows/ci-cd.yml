@@ -52,21 +52,53 @@ jobs:
 
       - name: Run Windows app build in Docker
         run: |
+          echo "Starting Windows app build..."
           docker run --rm \
             -v "${{ github.workspace }}:/workspace" \
             -w /workspace \
+            -e "GH_TOKEN=${{ secrets.GH_TOKEN }}" \
             trustinn-windows-builder
+          BUILD_EXIT=$?
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "Build failed with exit code $BUILD_EXIT"
+            exit $BUILD_EXIT
+          fi
+          echo "Build completed successfully"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: List build artifacts
-        run: ls -al dist
+        run: |
+          echo "=== Checking dist directory ==="
+          if [ -d "dist" ]; then
+            echo "✓ dist directory exists"
+            ls -lah dist/
+            find dist -type f -name "*.exe" | wc -l
+            echo "Total .exe files found: $(find dist -type f -name '*.exe' | wc -l)"
+          else
+            echo "✗ dist directory not found!"
+            exit 1
+          fi
 
       - name: Create GitHub release and upload assets
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/*
+          files: |
+            dist/**/*.exe
+            dist/**/*.nsis.7z
+            dist/latest.yml
           tag_name: ${{ github.ref_name }}
           name: Trustinn Windows App ${{ github.ref_name }}
-          body: "Automated Windows build for version ${{ github.ref_name }} from main branch."
+          body: |
+            Automated Windows build for version ${{ github.ref_name }}
+            
+            **Downloads:**
+            - Installer (NSIS): Recommended for most users
+            - Portable (ZIP): No installation required
+            
+            **Auto-Update:** The app includes built-in auto-update support and will notify users when this version is available.
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
