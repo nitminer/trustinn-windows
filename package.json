@@ -22,13 +22,21 @@
     "productName": "Trustinn Windows App",
     "icon": "logo/logo.png",
     "files": [
-      "**/*"
+      "main.js",
+      "preload.js",
+      "index.html",
+      "package.json",
+      "node_modules/**"
     ],
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "logo"
     },
     "win": {
       "icon": "logo/logo.png",
+      "certificateFile": null,
+      "signingHashAlgorithms": ["sha256"],
+      "sign": null,
       "target": [
         {
           "target": "nsis",
@@ -42,9 +50,11 @@
     },
     "nsis": {
       "oneClick": false,
-      "perMachine": false,
       "allowElevation": true,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "logo/logo.png",
+      "uninstallerIcon": "logo/logo.png",
+      "installerHeaderIcon": "logo/logo.png"
     },
     "publish": [
       {

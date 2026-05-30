@@ -50,6 +50,11 @@ jobs:
       - name: Build local Docker image
         run: docker build -t trustinn-windows-builder .
 
+      - name: Verify package.json before build
+        run: |
+          echo "=== Current package.json ==="
+          cat package.json | grep -A 2 '"version"'
+
       - name: Run Windows app build in Docker
         run: |
           echo "Starting Windows app build..."
@@ -73,8 +78,17 @@ jobs:
           if [ -d "dist" ]; then
             echo "✓ dist directory exists"
             ls -lah dist/
-            find dist -type f -name "*.exe" | wc -l
-            echo "Total .exe files found: $(find dist -type f -name '*.exe' | wc -l)"
+            echo ""
+            echo "=== Looking for all .exe files ==="
+            find dist -type f -name "*.exe" -o -name "*.nsis.7z" -o -name "*.appx" -o -name "*.msi" | sort
+            EXE_COUNT=$(find dist -type f -name "*.exe" | wc -l)
+            echo "Total .exe files found: $EXE_COUNT"
+            if [ "$EXE_COUNT" -eq 0 ]; then
+              echo "⚠️  WARNING: No .exe files found!"
+              echo "=== Full dist tree ==="
+              find dist -type f | sort
+              exit 1
+            fi
           else
             echo "✗ dist directory not found!"
             exit 1
