@@ -34,6 +34,7 @@
     },
     "win": {
       "icon": "logo/logo.png",
+      "artifactName": "Trustinn-Windows-App-Setup-${version}.${ext}",
       "target": [
         {
           "target": "nsis",
@@ -55,8 +56,7 @@
       "allowToChangeInstallationDirectory": true,
       "installerIcon": "logo/logo.ico",
       "uninstallerIcon": "logo/logo.ico",
-      "installerHeaderIcon": "logo/logo.ico",
-      "installerFilename": "Trustinn-Windows-App-Setup-${version}.exe"
+      "installerHeaderIcon": "logo/logo.ico"
     },
     "publish": [
       {
