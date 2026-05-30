@@ -1,6 +1,6 @@
 {
   "name": "trustinn-windowss",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Trustinn Windows Electron application",
   "main": "main.js",
   "scripts": {
@@ -49,9 +49,9 @@
       "oneClick": false,
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "logo/logo.png",
-      "uninstallerIcon": "logo/logo.png",
-      "installerHeaderIcon": "logo/logo.png"
+      "installerIcon": "logo/logo.ico",
+      "uninstallerIcon": "logo/logo.ico",
+      "installerHeaderIcon": "logo/logo.ico"
     },
     "publish": [
       {
