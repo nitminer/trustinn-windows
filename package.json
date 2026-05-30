@@ -34,9 +34,6 @@
     },
     "win": {
       "icon": "logo/logo.png",
-      "certificateFile": null,
-      "signingHashAlgorithms": ["sha256"],
-      "sign": null,
       "target": [
         {
           "target": "nsis",
