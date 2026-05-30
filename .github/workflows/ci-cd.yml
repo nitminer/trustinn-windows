@@ -30,7 +30,7 @@ jobs:
           const path = require('path');
           const pkgPath = path.resolve(process.cwd(), 'package.json');
           const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-          const version = process.argv[1];
+          const version = process.env.TAG_NAME;
           if (pkg.version !== version) {
             pkg.version = version;
             fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
@@ -68,4 +68,4 @@ jobs:
           name: Trustinn Windows App ${{ github.ref_name }}
           body: "Automated Windows build for version ${{ github.ref_name }} from main branch."
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
