@@ -46,6 +46,11 @@
   .h-status { display: flex; align-items: center; gap: 8px; padding: 0 20px; margin-left: auto; border-left: 2px solid var(--ink); }
   .h-status-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
   .h-status-text { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+  
+  .h-update-section { display: flex; align-items: center; gap: 12px; padding: 0 20px; margin-left: auto; border-left: 2px solid var(--ink); max-width: 320px; }
+  .h-update-status { font-family: var(--mono); font-size: 9px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .h-progress-bar { width: 60px; height: 4px; border: 1px solid var(--ink-3); background: var(--bg); position: relative; }
+  .h-progress-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.2s; }
 
   main { display: flex; flex: 1; min-height: 0; min-width: 0; }
 
@@ -225,7 +230,9 @@
     .out-topbar, .out-footer { padding-inline: 14px; }
     .terminal { padding: 18px 16px; }
     .h-logo { padding: 0 16px; }
-    .h-status { padding: 0 14px; }
+    .h-update-section { padding: 0 14px; }
+    .h-update-status { font-size: 8px; }
+    .h-progress-bar { width: 48px; }
   }
 
   @media (max-width: 720px) {
@@ -265,7 +272,7 @@
     header { height: auto; flex-wrap: wrap; }
     .h-logo { width: 100%; border-right: none; border-bottom: 2px solid var(--ink); min-height: 52px; }
     .h-crumbs { width: 100%; order: 3; padding: 10px 12px; overflow-x: auto; }
-    .h-status { border-left: none; margin-left: 0; padding: 0 12px; min-height: 52px; }
+    .h-update-section { width: 100%; order: 4; border-left: none; border-top: 2px solid var(--ink); padding: 10px 12px; }
     .lang-4 { grid-template-columns: 1fr 1fr; }
     .action-block { grid-template-columns: 1fr; }
     .modal-inner { padding: 16px; }
@@ -284,9 +291,11 @@
   <div class="h-crumb">v2.4.1</div>
   <div class="h-crumb">Version: <span id="appVersion">loading...</span></div>
 </div>
-  <div class="h-status">
-    <div class="h-status-dot"></div>
-    <div class="h-status-text">System Ready</div>
+  <div class="h-update-section">
+    <div class="h-update-status" id="updateStatus">Initializing...</div>
+    <div class="h-progress-bar" id="progressBar" style="display: none;">
+      <div class="h-progress-fill" id="progressFill"></div>
+    </div>
   </div>
 </header>
 
@@ -620,6 +629,40 @@ window.addEventListener('resize', () => {
 });
 
 document.getElementById('fi1').onchange=function(){if(this.files[0]){const t=document.getElementById('fb1').querySelector('.file-main');t.textContent='✓ '+this.files[0].name;}};
+
+// Update Status Handler
+const updateStatusEl = document.getElementById('updateStatus');
+const progressBar = document.getElementById('progressBar');
+const progressFill = document.getElementById('progressFill');
+
+if (window.electronAPI) {
+  // Get and display app version
+  window.electronAPI.getAppVersion().then((version) => {
+    document.getElementById('appVersion').innerText = `v${version}`;
+  }).catch(err => {
+    console.error('Error getting app version:', err);
+  });
+
+  // Listen for update status messages
+  window.electronAPI.onUpdateStatus((message) => {
+    console.log('[UI] Update status:', message);
+    updateStatusEl.innerText = message;
+
+    // Show progress bar if downloading
+    if (message.includes('Downloading')) {
+      progressBar.style.display = 'block';
+      const match = message.match(/(\d+)%/);
+      if (match) {
+        progressFill.style.width = match[1] + '%';
+      }
+    } else {
+      progressBar.style.display = 'none';
+    }
+  });
+} else {
+  document.getElementById('appVersion').innerText = 'browser';
+  updateStatusEl.innerText = 'Running in browser mode. Auto-update is disabled.';
+}
 
 render();
 </script>
