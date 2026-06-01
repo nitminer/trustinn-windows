@@ -22,6 +22,7 @@
     --mono: 'Space Mono', monospace;
     --sidebar-width: 280px;
     --splitter-width: 14px;
+    --terminal-height: 86vh;
   }
   body { font-family: var(--sans); background: var(--bg); color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
@@ -34,11 +35,12 @@
   }
   .h-logo {
     padding: 0 24px;
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center; gap: 1px;
     border-right: 2px solid var(--ink);
   }
-  .h-logo-sq { width: 28px; height: 28px; background: var(--ink); display: flex; align-items: center; justify-content: center; }
-  .h-logo-sq-inner { width: 12px; height: 12px; background: var(--yellow); }
+  .h-brand-logo { width: 38px; height: 38px; display: block; object-fit: contain; flex-shrink: 0; }
+  /* .h-logo-sq { width: 28px; height: 28px; background: var(--ink); display: flex; align-items: center; justify-content: center; } */
+  /* .h-logo-sq-inner { width: 12px; height: 12px; background: var(--yellow); } */
   .h-logo-text { font-family: var(--sans); font-size: 16px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
   .h-crumbs { display: flex; align-items: center; flex: 1; padding: 0 0 0 20px; gap: 0; min-width: 0; overflow: hidden; }
   .h-crumb { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: var(--ink); opacity: 0.5; padding-right: 16px; border-right: 1px solid rgba(0,0,0,0.15); margin-right: 16px; white-space: nowrap; }
@@ -47,14 +49,31 @@
   .h-status-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
   .h-status-text { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--ink); white-space: nowrap; }
   
-  .h-update-section { display: flex; align-items: center; gap: 12px; padding: 0 20px; margin-left: auto; border-left: 2px solid var(--ink); max-width: 320px; }
-  .h-update-status { font-family: var(--mono); font-size: 9px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .h-update-section { display: flex; align-items: center; gap: 12px; padding: 0 20px; margin-left: auto; border-left: 2px solid var(--ink); max-width: 520px; min-width: 0; }
+  .h-update-status { flex: 1; min-width: 0; font-family: var(--mono); font-size: 9px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .h-progress-bar { width: 60px; height: 4px; border: 1px solid var(--ink-3); background: var(--bg); position: relative; }
   .h-progress-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.2s; }
+  .h-restart-btn {
+    display: none;
+    flex-shrink: 0;
+    border: 2px solid var(--ink);
+    background: var(--ink);
+    color: var(--white);
+    padding: 6px 10px;
+    min-height: 28px;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .h-restart-btn:hover { background: var(--orange); border-color: var(--orange); }
+  .h-restart-btn:disabled { opacity: 0.7; cursor: wait; }
 
-  main { display: flex; flex: 1; min-height: 0; min-width: 0; }
+  main { display: flex; flex: 1; min-height: 0; min-width: 0; overflow: hidden; }
 
-  .sidebar { width: var(--sidebar-width); min-width: 240px; max-width: 520px; background: var(--white); border-right: 2px solid var(--ink); display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; flex-shrink: 0; }
+  .sidebar { width: var(--sidebar-width); min-width: 240px; max-width: 520px; min-height: 0; background: var(--white); border-right: 2px solid var(--ink); display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; flex-shrink: 0; }
 
   .splitter {
     width: var(--splitter-width);
@@ -158,9 +177,12 @@
 
   .file-btn {
     width: 100%; padding: 12px;
+    appearance: none;
     border: 2px dashed var(--rule);
     background: var(--bg); cursor: pointer;
     display: flex; align-items: center; gap: 10px;
+    font: inherit;
+    text-align: left;
     transition: border-color 0.1s;
   }
   .file-btn:hover { border-color: var(--ink); border-style: solid; }
@@ -177,7 +199,7 @@
   .ab-compile { background: none; border: 2px solid var(--ink); color: var(--ink); }
   .ab-compile:hover { background: var(--ink); color: var(--white); }
 
-  .output-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .output-area { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
   .out-topbar { background: var(--white); border-bottom: 2px solid var(--ink); padding: 0 20px; min-height: 46px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .out-title { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--ink); letter-spacing: 0.06em; display: flex; align-items: center; gap: 10px; min-width: 0; }
   .out-title-rect { width: 10px; height: 10px; border: 2px solid var(--ink-4); flex-shrink: 0; }
@@ -185,7 +207,9 @@
   .oa-btn { padding: 5px 12px; border: 2px solid var(--rule); background: none; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; color: var(--ink-3); transition: all 0.1s; min-height: 32px; }
   .oa-btn:hover { border-color: var(--ink); color: var(--ink); background: var(--bg); }
 
-  .terminal { flex: 1; overflow-y: auto; background: var(--bg); font-family: var(--mono); font-size: 12px; line-height: 1.75; padding: 22px 24px; position: relative; min-height: 0; }
+  .terminal { flex: 0 0 var(--terminal-height); height: var(--terminal-height); display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: var(--bg); }
+  .terminal-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-gutter: stable; overscroll-behavior: contain; touch-action: pan-y; background: var(--bg); font-family: var(--mono); font-size: 12px; line-height: 1.75; padding: 22px 24px; position: relative; }
+  .terminal-scroll:focus-visible { outline: none; }
   .t-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
   .t-empty-cross { position: relative; width: 48px; height: 48px; }
   .t-empty-cross::before, .t-empty-cross::after { content: ''; position: absolute; background: var(--rule); }
@@ -215,6 +239,22 @@
   .m-stat { background: var(--bg); padding: 14px; border-left: 4px solid var(--ink); }
   .m-stat-n { font-family: var(--mono); font-size: 22px; font-weight: 700; }
   .m-stat-l { font-size: 10px; color: var(--ink-3); font-weight: 500; margin-top: 3px; }
+  .m-result { border: 2px solid var(--rule); background: var(--bg); padding: 14px; margin-bottom: 16px; }
+  .m-result-head { font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; }
+  .m-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .m-result-item { background: var(--white); border-left: 4px solid var(--ink); padding: 10px 12px; }
+  .m-result-k { font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px; }
+  .m-result-v { font-family: var(--mono); font-size: 11px; color: var(--ink); word-break: break-word; }
+  .m-insights { border: 2px solid var(--rule); background: var(--bg); padding: 14px; margin-bottom: 16px; }
+  .m-insights-head { font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; }
+  .m-health { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .m-chip { border: 2px solid var(--rule); background: var(--white); padding: 4px 8px; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+  .m-chip.error { border-color: var(--orange); color: var(--orange); }
+  .m-chip.warn { border-color: #b08900; color: #8a6d00; }
+  .m-insights-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .m-insight-item { background: var(--white); border-left: 4px solid var(--ink); padding: 8px 10px; }
+  .m-insight-k { font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px; }
+  .m-insight-v { font-family: var(--mono); font-size: 11px; color: var(--ink); }
   .m-log-head { font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); border-bottom: 2px solid var(--ink); padding-bottom: 7px; margin-bottom: 8px; }
   .m-log-row { display: flex; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--rule); font-family: var(--mono); font-size: 11px; flex-wrap: wrap; }
   .m-log-t { color: var(--ink-3); min-width: 72px; }
@@ -229,6 +269,7 @@
     .sidebar { min-width: 200px; }
     .out-topbar, .out-footer { padding-inline: 14px; }
     .terminal { padding: 18px 16px; }
+    :root { --terminal-height: 380px; }
     .h-logo { padding: 0 16px; }
     .h-update-section { padding: 0 14px; }
     .h-update-status { font-size: 8px; }
@@ -261,10 +302,12 @@
     }
     .splitter:hover,
     .splitter.dragging { background: linear-gradient(to bottom, #efece1 0 35%, var(--yellow) 35% 65%, #efece1 65% 100%); }
+    :root { --terminal-height: 52vh; }
     .output-area { min-height: 52vh; }
     .out-topbar, .out-footer { flex-wrap: wrap; padding-block: 10px; }
     .out-actions { width: 100%; justify-content: flex-start; }
     .m-stats { grid-template-columns: 1fr; }
+    .m-insights-list { grid-template-columns: 1fr; }
     .h-crumbs { padding-left: 12px; }
   }
 
@@ -283,12 +326,12 @@
 
 <header>
   <div class="h-logo">
+    <img class="h-brand-logo" src="logo/logo.png" alt="Nitminer logo">
     <div class="h-logo-sq"><div class="h-logo-sq-inner"></div></div>
     <div class="h-logo-text">Trustinn</div>
   </div>
   <div class="h-crumbs">
-  <div class="h-crumb">Verification Suite</div>
-  <div class="h-crumb">v2.4.1</div>
+ 
   <div class="h-crumb">Version: <span id="appVersion">loading...</span></div>
 </div>
   <div class="h-update-section">
@@ -296,12 +339,14 @@
     <div class="h-progress-bar" id="progressBar" style="display: none;">
       <div class="h-progress-fill" id="progressFill"></div>
     </div>
+    <button id="restartUpdateBtn" class="h-restart-btn" type="button">Restart & Install</button>
   </div>
 </header>
 
 <main id="main-layout">
-  <div class="sidebar" id="sidebar">
+  <div class="sidebar " id="sidebar" >
 
+    
     <div class="sb-block">
       <div class="sb-block-head">Language <span>01/04</span></div>
       <div class="sb-block-body">
@@ -351,27 +396,23 @@
     <div class="sb-block">
       <div class="sb-block-head">Source</div>
       <div class="sb-block-body" style="display:flex;flex-direction:column;gap:8px;">
-        <label for="fi1">
-          <div class="file-btn" id="fb1">
-            <div class="file-icon">↑</div>
-            <div class="file-text-wrap">
-              <div class="file-main">Upload File</div>
-              <div class="file-sub">.c .h .java .py .sol</div>
-            </div>
+        <button type="button" class="file-btn" id="fb1">
+          <div class="file-icon">↑</div>
+          <div class="file-text-wrap">
+            <div class="file-main">Choose File</div>
+            <div class="file-sub">.c .h .java .py .sol</div>
           </div>
-        </label>
-        <input type="file" id="fi1" accept=".c,.h,.java,.py,.sol">
+        </button>
+        <div id="file-selection-label" style="font-family:var(--mono);font-size:9px;color:var(--ink-3);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">No file selected</div>
         <div id="fdir-wrap" style="display:none;">
-          <label for="fi2">
-            <div class="file-btn">
-              <div class="file-icon">⊞</div>
-              <div class="file-text-wrap">
-                <div class="file-main">Upload Folder</div>
-                <div class="file-sub">Contract directory</div>
-              </div>
+          <button type="button" class="file-btn" id="fb2">
+            <div class="file-icon">⊞</div>
+            <div class="file-text-wrap">
+              <div class="file-main">Choose Folder</div>
+              <div class="file-sub">Contract directory</div>
             </div>
-          </label>
-          <input type="file" id="fi2" webkitdirectory>
+          </button>
+          <div id="folder-selection-label" style="font-family:var(--mono);font-size:9px;color:var(--ink-3);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">No folder selected</div>
         </div>
       </div>
     </div>
@@ -405,9 +446,11 @@
       </div>
     </div>
     <div class="terminal" id="terminal">
-      <div class="t-empty" id="t-empty">
-        <div class="t-empty-cross"></div>
-        <div class="t-empty-text">No output yet</div>
+      <div class="terminal-scroll" id="terminal-scroll" tabindex="0">
+        <div class="t-empty" id="t-empty">
+          <div class="t-empty-cross"></div>
+          <div class="t-empty-text">No output yet</div>
+        </div>
       </div>
     </div>
     <div class="out-footer">
@@ -429,242 +472,21 @@
         <div class="m-stat"><div class="m-stat-n">—</div><div class="m-stat-l">Avg. Time</div></div>
         <div class="m-stat"><div class="m-stat-n">—</div><div class="m-stat-l">Pass Rate</div></div>
       </div>
+      <div class="m-result" id="m-result">
+        <div class="m-result-head">Latest Result</div>
+        <div class="m-result-grid" id="m-result-grid"></div>
+      </div>
+      <div class="m-insights" id="m-insights">
+        <div class="m-insights-head">Matched Result Metrics</div>
+        <div class="m-health" id="m-health"></div>
+        <div class="m-insights-list" id="m-insights-list"></div>
+      </div>
       <div class="m-log-head">Execution Log</div>
       <div id="m-log-list"><div class="m-log-row"><span class="m-log-t">—</span><span>No runs yet</span></div></div>
     </div>
   </div>
 </div>
 
-<script>
-
-
-const appVersionEl = document.getElementById('appVersion');
-
-  if (window.electronAPI) {
-    window.electronAPI.getAppVersion()
-      .then((version) => {
-        appVersionEl.innerText = `v${version}`;
-      })
-      .catch(err => {
-        console.error('Error getting app version:', err);
-        appVersionEl.innerText = 'v0.0.2';
-      });
-  } else {
-    appVersionEl.innerText = 'browser';
-  }
-const TOOLS = {
-  c: [
-    {name:'CC Bounded Model Checker',params:[{l:'Unwind Bound',id:'p1',t:'number',ph:'e.g. 10'}]},
-    {name:'DSE Mutation Analyzer',params:[{l:'Tool Value',id:'p2',t:'text',ph:'e.g. cbmc'}]},
-    {name:'Dynamic Symbolic Execution',params:[]},
-    {name:'DSE with Pruning',params:[]},
-    {name:'Adv. Coverage Profiler',params:[{l:'Version',id:'p3',t:'text',ph:'1.0'},{l:'Time Bound (s)',id:'p4',t:'number',ph:'60'}]},
-    {name:'Mutation Testing Profiler',params:[{l:'Version',id:'p5',t:'text',ph:'1.0'},{l:'Time Bound (s)',id:'p6',t:'number',ph:'60'}]},
-  ],
-  java:[{name:'Java Bounded Model Checker',params:[{l:'Unwind Bound',id:'j1',t:'number',ph:'10'}]}],
-  python:[{name:'Condition Coverage Fuzzing',params:[{l:'Fuzz Iterations',id:'py1',t:'number',ph:'1000'}]}],
-  solidity:[{name:'Smart Contract Verifier',params:[],subtools:[{name:'BMC',params:[{l:'Unwind Bound',id:'s1',t:'number',ph:'10'}]},{name:'CHC',params:[{l:'Depth Bound',id:'s2',t:'number',ph:'5'}]}]}],
-};
-let lang='c', tool=0, sub=null, runs=0, log=[];
-
-const root = document.documentElement;
-const splitter = document.getElementById('splitter');
-const mainLayout = document.getElementById('main-layout');
-const MIN_SIDEBAR = 240;
-const MAX_SIDEBAR = 520;
-let isDragging = false;
-
-function setSidebarWidth(px) {
-  const width = Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, px));
-  root.style.setProperty('--sidebar-width', width + 'px');
-  splitter.setAttribute('aria-valuenow', width);
-}
-
-function setLang(l,btn){
-  lang=l; tool=0; sub=null;
-  document.querySelectorAll('.lang-card').forEach(c=>c.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('h-lang-crumb').textContent = l.charAt(0).toUpperCase()+l.slice(1)+' Language';
-  document.getElementById('fdir-wrap').style.display = l==='solidity'?'block':'none';
-  render();
-}
-
-function render(){
-  const tools=TOOLS[lang];
-  document.getElementById('sb-tool-count').textContent = `${String(tool+1).padStart(2,'0')}/${String(tools.length).padStart(2,'0')}`;
-  const strip=document.getElementById('tool-strip');
-  strip.innerHTML='';
-  tools.forEach((t,i)=>{
-    const d=document.createElement('div');
-    d.className='tool-row'+(i===tool?' active':'');
-    d.innerHTML=`<div class="tool-row-num">${String(i+1).padStart(2,'0')}</div><div class="tool-row-name">${t.name}</div><div class="tool-row-arrow">→</div>`;
-    d.onclick=()=>{tool=i;sub=null;render();};
-    strip.appendChild(d);
-  });
-  const t=tools[tool];
-  const sw=document.getElementById('subtool-wrap');
-  const sr=document.getElementById('subtool-row');
-  if(t.subtools){
-    sw.style.display='block';
-    sr.innerHTML=t.subtools.map((st,si)=>`<button class="st-btn${sub===si?' active':''}" onclick="setSub(${si},event)">${st.name}</button>`).join('');
-  } else { sw.style.display='none'; }
-  renderParams();
-}
-
-function setSub(i,e){ e.stopPropagation(); sub=i; render(); }
-
-function renderParams(){
-  const t=TOOLS[lang][tool];
-  let p=t.params;
-  if(t.subtools&&sub!==null) p=t.subtools[sub].params;
-  const b=document.getElementById('params-body');
-  if(!p.length){b.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--ink-4);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">None required</div>';return;}
-  b.innerHTML=p.map(x=>`<div class="param-block"><label class="param-lbl">${x.l}</label><input class="param-in" id="${x.id}" type="${x.t}" placeholder="${x.ph}"></div>`).join('');
-}
-
-function getP(){
-  const t=TOOLS[lang][tool];
-  let p=t.params;
-  if(t.subtools&&sub!==null) p=t.subtools[sub].params;
-  return p.map(x=>{const e=document.getElementById(x.id);return e?`${x.l}=${e.value||'—'}`:''}).filter(Boolean).join(', ');
-}
-
-function addLine(txt,col){
-  const t=document.getElementById('terminal');
-  const e=document.getElementById('t-empty');
-  if(e)e.remove();
-  const d=document.createElement('div');
-  d.style.color=col||'var(--ink-2)';
-  d.textContent=txt;
-  t.appendChild(d);
-  t.scrollTop=t.scrollHeight;
-}
-
-function doRun(){
-  const tn=TOOLS[lang][tool].name;
-  const p=getP();
-  const ts=new Date().toLocaleTimeString();
-  runs++;log.unshift({ts,tn,ok:true});
-  document.getElementById('of-status').textContent='Running';
-  document.getElementById('ms1').textContent=runs;
-  addLine(`[${ts}] ▶ ${lang}/${tn}${p?' ['+p+']':''}`,'var(--ink)');
-  addLine('[info]  engine init OK','var(--ink-3)');
-  addLine('[info]  parsing source…','var(--ink-3)');
-  addLine('[pass]  0 errors found','#2d6a2d');
-  addLine('','transparent');
-  setTimeout(()=>document.getElementById('of-status').textContent='Complete',1100);
-}
-function doCompile(){
-  const ts=new Date().toLocaleTimeString();
-  document.getElementById('of-status').textContent='Compiling…';
-  addLine(`[${ts}] ⌘ compile ${lang}`,'var(--ink)');
-  addLine('[pass]  build OK','#2d6a2d');
-  addLine('','transparent');
-  setTimeout(()=>document.getElementById('of-status').textContent='Complete',700);
-}
-function doCopy(){navigator.clipboard.writeText(document.getElementById('terminal').innerText).catch(()=>{});}
-function doStop(){document.getElementById('of-status').textContent='Stopped';addLine('[stop]  interrupted','var(--orange)');addLine('','transparent');}
-function doClear(){
-  document.getElementById('terminal').innerHTML='<div class="t-empty" id="t-empty"><div class="t-empty-cross"></div><div class="t-empty-text">No output yet</div></div>';
-  document.getElementById('of-status').textContent='Idle';
-}
-function openModal(){
-  document.getElementById('m-log-list').innerHTML=log.length?log.map(l=>`<div class="m-log-row"><span class="m-log-t">${l.ts}</span><span>${l.tn}</span><span class="${l.ok?'m-log-ok':'m-log-fail'}">${l.ok?'OK':'FAIL'}</span></div>`).join(''):'<div class="m-log-row"><span class="m-log-t">—</span><span>No runs yet</span></div>';
-  document.getElementById('mwrap').classList.add('open');
-}
-function closeModal(){document.getElementById('mwrap').classList.remove('open');}
-function bgClose(e){if(e.target===document.getElementById('mwrap'))closeModal();}
-
-function handlePointerDown(event) {
-  if (window.innerWidth <= 720) return;
-  isDragging = true;
-  splitter.classList.add('dragging');
-  document.body.style.userSelect = 'none';
-}
-
-function handlePointerMove(event) {
-  if (!isDragging || window.innerWidth <= 720) return;
-  const mainRect = mainLayout.getBoundingClientRect();
-  const nextWidth = event.clientX - mainRect.left;
-  setSidebarWidth(nextWidth);
-}
-
-function handlePointerUp() {
-  if (!isDragging) return;
-  isDragging = false;
-  splitter.classList.remove('dragging');
-  document.body.style.userSelect = '';
-}
-
-splitter.addEventListener('pointerdown', handlePointerDown);
-window.addEventListener('pointermove', handlePointerMove);
-window.addEventListener('pointerup', handlePointerUp);
-window.addEventListener('pointercancel', handlePointerUp);
-
-splitter.addEventListener('keydown', (event) => {
-  if (window.innerWidth <= 720) return;
-  const current = parseInt(getComputedStyle(root).getPropertyValue('--sidebar-width'), 10) || 280;
-  if (event.key === 'ArrowLeft') {
-    event.preventDefault();
-    setSidebarWidth(current - 16);
-  }
-  if (event.key === 'ArrowRight') {
-    event.preventDefault();
-    setSidebarWidth(current + 16);
-  }
-  if (event.key === 'Home') {
-    event.preventDefault();
-    setSidebarWidth(MIN_SIDEBAR);
-  }
-  if (event.key === 'End') {
-    event.preventDefault();
-    setSidebarWidth(MAX_SIDEBAR);
-  }
-});
-
-window.addEventListener('resize', () => {
-  if (window.innerWidth <= 720) return;
-  const current = parseInt(getComputedStyle(root).getPropertyValue('--sidebar-width'), 10) || 280;
-  setSidebarWidth(current);
-});
-
-document.getElementById('fi1').onchange=function(){if(this.files[0]){const t=document.getElementById('fb1').querySelector('.file-main');t.textContent='✓ '+this.files[0].name;}};
-
-// Update Status Handler
-const updateStatusEl = document.getElementById('updateStatus');
-const progressBar = document.getElementById('progressBar');
-const progressFill = document.getElementById('progressFill');
-
-if (window.electronAPI) {
-  // Get and display app version
-  window.electronAPI.getAppVersion().then((version) => {
-    document.getElementById('appVersion').innerText = `v${version}`;
-  }).catch(err => {
-    console.error('Error getting app version:', err);
-  });
-
-  // Listen for update status messages
-  window.electronAPI.onUpdateStatus((message) => {
-    console.log('[UI] Update status:', message);
-    updateStatusEl.innerText = message;
-
-    // Show progress bar if downloading
-    if (message.includes('Downloading')) {
-      progressBar.style.display = 'block';
-      const match = message.match(/(\d+)%/);
-      if (match) {
-        progressFill.style.width = match[1] + '%';
-      }
-    } else {
-      progressBar.style.display = 'none';
-    }
-  });
-} else {
-  document.getElementById('appVersion').innerText = 'browser';
-  updateStatusEl.innerText = 'Running in browser mode. Auto-update is disabled.';
-}
-
-render();
-</script>
+<script src="renderer.js"></script>
 </body>
 </html>

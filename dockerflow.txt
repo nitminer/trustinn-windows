@@ -1,0 +1,414 @@
+════════════════════════════════════════════════════════════════════════════════
+                  TRUSTINN DOCKER EXECUTION FLOW - MAC/LINUX TESTING
+════════════════════════════════════════════════════════════════════════════════
+
+Docker Image: nitminer/trustinn:1.0
+Available at: https://hub.docker.com/r/nitminer/trustinn
+
+Setup Before Running:
+  1. Install Docker Desktop on Mac: https://www.docker.com/products/docker-desktop
+  2. Pull the image: docker pull nitminer/trustinn:1.0
+  3. cd into TRUSTINN folder (where this file is)
+  4. Run commands below
+
+════════════════════════════════════════════════════════════════════════════════
+TOOL 1: CC-BOUNDED MODEL CHECKER (CBMC)
+════════════════════════════════════════════════════════════════════════════════
+
+Test 1: Parse Error Test (PS-P2-L-T-R16-small.c)
+─────────────────────────────────────────────────
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/CC-BOUNDED\ MODEL\ CHECKER && \
+   bash cbmc_script.sh PS-P2-L-T-R16-small.c 10"
+
+Expected Output:
+  - PARSING ERROR (expected)
+  - Total Reachable paths: 0
+  - Total Unreachable paths: 0
+
+─────────────────────────────────────────────────────────────────────────────
+
+Test 2: Valid File Test (P1-L-R16.c)
+─────────────────────────────────────
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/CC-BOUNDED\ MODEL\ CHECKER && \
+   bash cbmc_script.sh P1-L-R16.c 10"
+
+Expected Output:
+  - Total Reachable paths: 73
+  - Total Unreachable paths: 61
+  - Results saved to: CC-BOUNDED\ MODEL\ CHECKER/P1-L-R16/P1-L-R16-report.txt
+
+════════════════════════════════════════════════════════════════════════════════
+TOOL 2: DSE MUTATION ANALYSER (KLEEMA)
+════════════════════════════════════════════════════════════════════════════════
+
+Test: Mutation Analysis on even.c
+──────────────────────────────────
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/DSE_MUTATION_ANALYSER && \
+   bash KLEEMA.sh even.c 1"
+
+Expected Output:
+  - KLEE execution on mutants
+  - Basic Block Coverage Report
+  - ICMP/Atomic Condition Coverage Report
+  - Mutation Score Report
+    * Alive Mutants: 6
+    * Killed Mutants: 4
+    * Reached Mutants: 10
+    * Mutation Score: 40%
+
+════════════════════════════════════════════════════════════════════════════════
+TOOL 3: DYNAMIC SYMBOLIC EXECUTION (KLEE)
+═════════════════════════════════════════════════════════════════════════════════
+
+Test: KLEE Symbolic Execution on even.c
+─────────────────────────────────────────
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/DYNAMIC_SYMBOLIC_EXECUTION && \
+   bash KLEE.sh even.c"
+
+Expected Output:
+  - KLEE execution starts
+  - Basic Block Coverage Report
+  - ICMP/Atomic Condition Coverage Report
+  - Path Statistics:
+    * Completed paths: 1
+    * Generated tests: 1
+    * Instructions: 24
+  - Results in: DYNAMIC_SYMBOLIC_EXECUTION/even-1/klee-out-0/
+
+════════════════════════════════════════════════════════════════════════════════
+TOOL 4: DSE WITH PRUNING (TRACERX)
+═══════════════════════════════════════════════════════════════════════════════
+
+Test: TracerX with Pruning on even.c
+────────────────────────────────────
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/DSE_WITH_PRUNING && \
+   bash tx.sh even.c"
+
+Expected Output:
+  - TracerX KLEE execution with pruning
+  - Basic Block Coverage Report
+  - ICMP/Atomic Condition Coverage Report
+  - Subsumption statistics
+  - TxTree method execution times
+  - Path Statistics:
+    * Completed paths: 1
+    * Generated tests: 1
+    * Instructions: 24
+  - Results in: DSE_WITH_PRUNING/even-2/klee-out-0/
+
+════════════════════════════════════════════════════════════════════════════════
+TOOL 5: ADVANCE CODE COVERAGE PROFILER (MC/DC)
+════════════════════════════════════════════════════════════════════════════════
+
+Test: MC/DC and SC-MCC Coverage Analysis
+─────────────────────────────────────────
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/ADVANCE_CODE_COVERAGE_PROFILER && \
+   bash main-gProfiler.sh PS-P3-L-T-R20-B3-SMALL 4 3600"
+
+Expected Output:
+  - MC/DC Report
+    * Total feasible MC/DC sequences: 1
+    * Total MC/DC sequences: 7
+    * MC/DC Score: 14
+  - SC-MCC Report
+    * Total feasible SC-MCC sequences: 1
+    * Total SC-MCC sequences: 7
+    * SC-MCC Score: 14
+
+════════════════════════════════════════════════════════════════════════════════
+TOOL 6: MUTATION TESTING PROFILER
+═════════════════════════════════════════════════════════════════════════════════
+
+Test: Mutation Score Calculation
+──────────────────────────────────
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/MUTATION_TESTING_PROFILER && \
+   bash main-gProfiler.sh PS-P3-L-T-R20-B3-SMALL.c 4 3600"
+
+Expected Output:
+  - Mutation Report
+    * Total Killed Mutants: 25
+    * Total Mutants: 42
+    * Mutation Score: 59
+
+════════════════════════════════════════════════════════════════════════════════
+TOOL 7: JAVA - JBMC ASSERTION CHECKER
+═════════════════════════════════════════════════════════════════════════════════
+
+Test: Java Assertion Synthesis and Analysis
+────────────────────────────────────────────
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/JAVA && \
+   bash shellsc.sh Demo.java"
+
+Expected Output:
+  - Compilation: SUCCESS (Demo.class generated)
+  - JBMC Assertion Analysis:
+    * line 8 assertion: FAILURE
+    * line 9-19 assertions: SUCCESS (7 passed)
+  - Total Assertion Failure: 1
+  - Total Assertion Added: 8
+  - Conditional Coverage: 87%
+
+════════════════════════════════════════════════════════════════════════════════
+TOOL 8: PYTHON - ASSERTION CHECKER WITH COVERAGE
+═══════════════════════════════════════════════════════════════════════════════
+
+Test: Python Code Analysis with Cricket Scorer Example
+──────────────────────────────────────────────────────
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/PYTHON && \
+   bash shellpy.sh SAMPLES/cricket_scorer.py"
+
+Expected Output:
+  - Compilation (Syntax Check): SUCCESS
+  - Assertion Analysis:
+    * Batting Performance Analysis (12 entries)
+    * Match Results (7 entries)
+    * Bowling Analysis (10 entries)
+    * Chase Meter (8 entries)
+    * Player of the Match (8 entries)
+  - Assertion Summary:
+    * Total assertion violations: 110
+    * Unique assertions covered: 48
+    * Total tracked assertions: 73
+    * Failed Assertion: 110
+    * Passed Assertions: 25
+    * Conditional Coverage: 34.25%
+
+════════════════════════════════════════════════════════════════════════════════
+TOOL 9: SOLIDITY - SMART CONTRACT VERIFICATION (SINGLE FILE)
+═════════════════════════════════════════════════════════════════════════════════
+
+Test 1: Bounded Model Checking (BMC) on Land.sol
+────────────────────────────────────────────────
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/SOLIDITY && \
+   bash latest.sh Land.sol bmc"
+
+Expected Output:
+  - Processing Contract: Land.sol
+  - Properties inserted: 14
+  - Properties violation detected (dynamic): 14
+  - Properties violation detected (unique): 14
+  - Total atomic condition: 7
+  - Condition Coverage %: 100%
+  - Total runtime: ~0.71 seconds
+
+─────────────────────────────────────────────────────────────────────────────
+
+Test 2: Constrained Horn Clauses (CHC) on Land.sol
+──────────────────────────────────────────────────
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/SOLIDITY && \
+   bash latest.sh Land.sol chc"
+
+Expected Output:
+  - Processing Contract: Land.sol
+  - Properties inserted: 14
+  - Properties violation detected (dynamic): 6
+  - Properties violation detected (unique): 6
+  - Total atomic condition: 7
+  - Condition Coverage %: 42%
+  - Total runtime: ~9.09 seconds
+
+════════════════════════════════════════════════════════════════════════════════
+TOOL 10: SOLIDITY - SMART CONTRACT VERIFICATION (FOLDER/PROJECT)
+═════════════════════════════════════════════════════════════════════════════════
+
+Test 1: Bounded Model Checking (BMC) on Akashic Project
+───────────────────────────────────────────────────────
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/SOLIDITY && \
+   bash latest.sh Akashic bmc"
+
+Expected Output:
+  - Processing Multiple Contracts (Akashic.sol, Context.sol, ERC20.sol, etc.)
+  - Final Result of Akashic Project:
+    * Total Assert count: 22
+    * Total Properties violation (dynamic): 22
+    * Total violation (unique): 22
+    * Total atomic condition: 11
+    * Total Condition Coverage %: 100%
+    * Total runtime: ~3.24 seconds
+
+─────────────────────────────────────────────────────────────────────────────
+
+Test 2: Constrained Horn Clauses (CHC) on Akashic Project
+──────────────────────────────────────────────────────────
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/SOLIDITY && \
+   bash latest.sh Akashic chc"
+
+Expected Output:
+  - Processing Multiple Contracts (Akashic.sol, Context.sol, ERC20.sol, etc.)
+  - Final Result of Akashic Project:
+    * Total Assert count: 22
+    * Total Properties violation (dynamic): 14
+    * Total violation (unique): 14
+    * Total atomic condition: 11
+    * Total Condition Coverage %: 63%
+    * Total runtime: ~25.21 seconds
+
+════════════════════════════════════════════════════════════════════════════════
+QUICK RUN ALL TOOLS (Sequential)
+════════════════════════════════════════════════════════════════════════════════
+
+Run all tools one after another (total time ~2-3 minutes):
+
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c "
+source /init_paths.sh
+
+echo '=== TOOL 1: CC-BOUNDED MODEL CHECKER ===' && \
+cd /workspace/trustinn/CC-BOUNDED\ MODEL\ CHECKER && \
+bash cbmc_script.sh P1-L-R16.c 10 && \
+
+echo '=== TOOL 2: DSE MUTATION ANALYSER ===' && \
+cd /workspace/trustinn/DSE_MUTATION_ANALYSER && \
+bash KLEEMA.sh even.c 1 && \
+
+echo '=== TOOL 3: DYNAMIC SYMBOLIC EXECUTION ===' && \
+cd /workspace/trustinn/DYNAMIC_SYMBOLIC_EXECUTION && \
+bash KLEE.sh even.c && \
+
+echo '=== TOOL 4: DSE WITH PRUNING ===' && \
+cd /workspace/trustinn/DSE_WITH_PRUNING && \
+bash tx.sh even.c && \
+
+echo '=== TOOL 5: JAVA ASSERTION CHECKER ===' && \
+cd /workspace/trustinn/JAVA && \
+bash shellsc.sh Demo.java && \
+
+echo '=== TOOL 6: PYTHON ASSERTION CHECKER ===' && \
+cd /workspace/trustinn/PYTHON && \
+bash shellpy.sh SAMPLES/cricket_scorer.py && \
+
+echo '=== TOOL 7: SOLIDITY VERIFICATION (BMC) ===' && \
+cd /workspace/trustinn/SOLIDITY && \
+bash latest.sh Land.sol bmc && \
+
+echo '=== ALL TOOLS COMPLETED SUCCESSFULLY ===' \
+"
+
+════════════════════════════════════════════════════════════════════════════════
+INTERACTIVE SHELL (For Manual Testing)
+════════════════════════════════════════════════════════════════════════════════
+
+Launch interactive shell to explore tools:
+
+$ docker run -it --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash
+
+Inside container:
+  # source /init_paths.sh
+  # cd /workspace/trustinn/DSE_WITH_PRUNING
+  # ./tx.sh even.c
+  # ls even-2/klee-out-0/
+  # exit
+
+════════════════════════════════════════════════════════════════════════════════
+SAVE RESULTS TO LOCAL DIRECTORY
+════════════════════════════════════════════════════════════════════════════════
+
+Run CBMC and save report to local folder:
+
+$ mkdir -p ./reports
+$ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 bash -c \
+  "source /init_paths.sh && \
+   cd /workspace/trustinn/CC-BOUNDED\ MODEL\ CHECKER && \
+   bash cbmc_script.sh P1-L-R16.c 10 && \
+   cp P1-L-R16/P1-L-R16-report.txt /workspace/trustinn/reports/"
+
+Results saved to: ./reports/P1-L-R16-report.txt
+
+════════════════════════════════════════════════════════════════════════════════
+TROUBLESHOOTING
+════════════════════════════════════════════════════════════════════════════════
+
+Issue: "docker: command not found"
+Solution: Install Docker Desktop: https://www.docker.com/products/docker-desktop
+
+Issue: "image not found: nitminer/trustinn:1.0"
+Solution: Pull the image first:
+  $ docker pull nitminer/trustinn:1.0
+
+Issue: "Permission denied"
+Solution: On Mac, Docker Desktop should handle permissions. Restart Docker Desktop.
+
+Issue: Results not appearing in local folder
+Solution: Check volume mount is correct:
+  $ docker run --rm -v $(pwd):/workspace/trustinn nitminer/trustinn:1.0 ls -la /workspace/trustinn/
+
+════════════════════════════════════════════════════════════════════════════════
+PERFORMANCE NOTES
+════════════════════════════════════════════════════════════════════════════════
+
+Tool                           Time (Approx)    CPU Usage
+─────────────────────────────────────────────────────────
+CC-BOUNDED MODEL CHECKER       ~1 sec           Medium
+DSE MUTATION ANALYSER          ~5-10 sec        High
+DYNAMIC SYMBOLIC EXECUTION     ~1-2 sec         Medium
+DSE WITH PRUNING               ~1-2 sec         Medium
+ADVANCE CODE COVERAGE          ~1-2 sec         Medium
+MUTATION TESTING PROFILER      ~2-3 sec         Medium
+JAVA ASSERTION CHECKER         ~2-3 sec         Medium
+PYTHON ASSERTION CHECKER       ~3-5 sec         Medium
+SOLIDITY BMC (single)          ~1 sec           Medium
+SOLIDITY CHC (single)          ~10 sec          High
+SOLIDITY BMC (project)         ~3-4 sec         High
+SOLIDITY CHC (project)         ~25 sec          High
+
+Total Sequential Time: ~2-3 minutes
+
+════════════════════════════════════════════════════════════════════════════════
+MAC-SPECIFIC TIPS
+════════════════════════════════════════════════════════════════════════════════
+
+1. Increase Docker Resources:
+   - Docker Desktop → Preferences → Resources
+   - Set CPU cores to 4+
+   - Set memory to 8GB or more
+
+2. Fast execution on Mac:
+   - Use volume mounts with native paths
+   - Avoid nested volumes
+   - Use --rm flag to clean up containers
+
+3. Save space:
+   - Clean up old containers: docker container prune
+   - Remove unused images: docker image prune
+
+4. Monitor execution:
+   - Watch CPU usage: docker stats
+   - Check logs: docker logs container_name
+
+════════════════════════════════════════════════════════════════════════════════
+READY FOR MAC TESTING ✓
+════════════════════════════════════════════════════════════════════════════════
+
+All commands above are ready to copy and paste into Mac Terminal.
+Just make sure:
+  ✓ Docker Desktop is running
+  ✓ Image is pulled: docker pull nitminer/trustinn:1.0
+  ✓ Current directory is the TRUSTINN folder
+  ✓ Execute commands from Mac Terminal (not inside container)
+
+Start with any single command above to test!

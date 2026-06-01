@@ -172,7 +172,16 @@
   .ab-compile { background: none; border: 2px solid var(--ink); color: var(--ink); }
   .ab-compile:hover { background: var(--ink); color: var(--white); }
 
-  .output-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .output-area {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+}
   .out-topbar { background: var(--white); border-bottom: 2px solid var(--ink); padding: 0 20px; min-height: 46px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .out-title { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--ink); letter-spacing: 0.06em; display: flex; align-items: center; gap: 10px; min-width: 0; }
   .out-title-rect { width: 10px; height: 10px; border: 2px solid var(--ink-4); flex-shrink: 0; }
@@ -180,7 +189,24 @@
   .oa-btn { padding: 5px 12px; border: 2px solid var(--rule); background: none; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; color: var(--ink-3); transition: all 0.1s; min-height: 32px; }
   .oa-btn:hover { border-color: var(--ink); color: var(--ink); background: var(--bg); }
 
-  .terminal { flex: 1; overflow-y: auto; background: var(--bg); font-family: var(--mono); font-size: 12px; line-height: 1.75; padding: 22px 24px; position: relative; min-height: 0; }
+  .terminal { flex: 1; overflow-y: auto; overflow-x: hidden; background: var(--bg); font-family: var(--mono); font-size: 12px; line-height: 1.75; padding: 22px 24px;  min-height: 0; }
+
+  .terminal::-webkit-scrollbar {
+    width: 8px;
+}
+
+.terminal::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.terminal::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.terminal::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
   .t-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
   .t-empty-cross { position: relative; width: 48px; height: 48px; }
   .t-empty-cross::before, .t-empty-cross::after { content: ''; position: absolute; background: var(--rule); }
@@ -386,7 +412,7 @@
     tabindex="0"
   ></div>
 
-  <div class="output-area">
+  <div class="output-area ">
     <div class="out-topbar">
       <div class="out-title"><div class="out-title-rect"></div>Terminal Output</div>
       <div class="out-actions">
@@ -452,11 +478,12 @@ const TOOLS = {
     {name:'Adv. Coverage Profiler',params:[{l:'Version',id:'p3',t:'text',ph:'1.0'},{l:'Time Bound (s)',id:'p4',t:'number',ph:'60'}]},
     {name:'Mutation Testing Profiler',params:[{l:'Version',id:'p5',t:'text',ph:'1.0'},{l:'Time Bound (s)',id:'p6',t:'number',ph:'60'}]},
   ],
-  java:[{name:'Java Bounded Model Checker',params:[{l:'Unwind Bound',id:'j1',t:'number',ph:'10'}]}],
+  java:[{name:'Java Bounded Model Checker',params:[]}],
   python:[{name:'Condition Coverage Fuzzing',params:[{l:'Fuzz Iterations',id:'py1',t:'number',ph:'1000'}]}],
   solidity:[{name:'Smart Contract Verifier',params:[],subtools:[{name:'BMC',params:[{l:'Unwind Bound',id:'s1',t:'number',ph:'10'}]},{name:'CHC',params:[{l:'Depth Bound',id:'s2',t:'number',ph:'5'}]}]}],
 };
 let lang='c', tool=0, sub=null, runs=0, log=[];
+let followTerminalScroll = true;
 
 const root = document.documentElement;
 const splitter = document.getElementById('splitter');
@@ -526,9 +553,19 @@ function addLine(txt,col){
   if(e)e.remove();
   const d=document.createElement('div');
   d.style.color=col||'var(--ink-2)';
+  d.style.whiteSpace='pre-wrap';
   d.textContent=txt;
   t.appendChild(d);
-  t.scrollTop=t.scrollHeight;
+  if (followTerminalScroll) {
+    t.scrollTop=t.scrollHeight;
+  }
+}
+
+function updateTerminalFollowState() {
+  const t = document.getElementById('terminal');
+  const threshold = 24;
+  const remaining = t.scrollHeight - t.scrollTop - t.clientHeight;
+  followTerminalScroll = remaining <= threshold;
 }
 
 function doRun(){
@@ -558,6 +595,7 @@ function doStop(){document.getElementById('of-status').textContent='Stopped';add
 function doClear(){
   document.getElementById('terminal').innerHTML='<div class="t-empty" id="t-empty"><div class="t-empty-cross"></div><div class="t-empty-text">No output yet</div></div>';
   document.getElementById('of-status').textContent='Idle';
+  followTerminalScroll = true;
 }
 function openModal(){
   document.getElementById('m-log-list').innerHTML=log.length?log.map(l=>`<div class="m-log-row"><span class="m-log-t">${l.ts}</span><span>${l.tn}</span><span class="${l.ok?'m-log-ok':'m-log-fail'}">${l.ok?'OK':'FAIL'}</span></div>`).join(''):'<div class="m-log-row"><span class="m-log-t">—</span><span>No runs yet</span></div>';
@@ -618,6 +656,14 @@ window.addEventListener('resize', () => {
   const current = parseInt(getComputedStyle(root).getPropertyValue('--sidebar-width'), 10) || 280;
   setSidebarWidth(current);
 });
+
+const terminal = document.getElementById('terminal');
+if (terminal) {
+  terminal.addEventListener('scroll', updateTerminalFollowState, { passive: true });
+  terminal.addEventListener('wheel', () => {
+    followTerminalScroll = false;
+  }, { passive: true });
+}
 
 document.getElementById('fi1').onchange=function(){if(this.files[0]){const t=document.getElementById('fb1').querySelector('.file-main');t.textContent='✓ '+this.files[0].name;}};
 

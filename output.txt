@@ -1,0 +1,595 @@
+user@NITMINER:/mnt/d/TRUSTINN/CC-BOUNDED MODEL CHECKER$ ./cbmc_script.sh PS-P2-L-T-R16-small.c 10
+This code is developed by NITMiner Technologies Pvt Ltd.
+2026-05-31T10:12:26.521454 file PS-P2-L-T-R16-small.c line 1 function Final: syntax error before `Result'
+PARSING ERROR
+******Final Result Report from CBMC******
+Total number of Reachable paths or valid test cases =: 0
+Total number of Unreachable paths or invalid test cases =:0
+Total time required (sec):= 0
+user@NITMINER:/mnt/d/TRUSTINN/CC-BOUNDED MODEL CHECKER$      user@NITMINER:/mnt/d/TRUSTINN/DSE_MUTATION_ANALYSER$ ./KLEEMA.sh even.c 1
+This code is developed by NITMiner Technologies Pvt Ltd.
+KLEE: KLEE: WATCHDOG: watching 588
+
+KLEE: output directory is "/mnt/d/TRUSTINN/DSE_MUTATION_ANALYSER/klee-out-0"
+Using STP solver backend
+KLEE: WARNING: undefined reference to function: printf
+KLEE: WARNING ONCE: calling external: printf(94508526422104)
+************Basic Block Coverage Report Starts****************
+KLEE: done: Total number of single time Visited Basic Blocks: 4
+KLEE: done: Total number of Basic Blocks: 5
+************Basic Block Coverage Report Ends****************
+************ICMP/Atomic Condition Coverage Report Starts****************
+KLEE: done: Total number of Covered ICMP/Atomic Condition: 1
+KLEE: done: Total number of All ICMP/Atomic Condition: 1
+************ICMP/Atomic Condition Coverage Report Ends****************
+KLEE: Memory cap NOT exceeded!
+
+
+KLEE: done: total instructions = 24
+KLEE: done: completed paths = 1, among which
+KLEE: done:     early-terminating paths (instruction time limit, solver timeout, max-depth reached) = 0
+KLEE: done:     error paths = 0
+KLEE: done:     program exit paths = 1
+KLEE: done: generated tests = 1, among which
+KLEE: done:     early-terminating tests (instruction time limit, solver timeout, max-depth reached) = 0
+KLEE: done:     error tests = 0
+KLEE: done:     program exit tests = 1
+Odd--------------------------
+rm: cannot remove 'a.out': No such file or directory
+Mutant Alive
+Mutant Alive
+Mutant Alive
+Mutant Alive
+1c1
+< Odd
+\ No newline at end of file
+---
+> Even
+\ No newline at end of file
+Mutant Killed
+1c1
+< Odd
+\ No newline at end of file
+---
+> Even
+\ No newline at end of file
+Mutant Killed
+Mutant Alive
+1c1
+< Odd
+\ No newline at end of file
+---
+> Even
+\ No newline at end of file
+Mutant Killed
+Mutant Alive
+1c1
+< Odd
+\ No newline at end of file
+---
+> Even
+\ No newline at end of file
+Mutant Killed
+============Mutation Score Report============
+Total number of Alive Mutants =: 6
+Total number of Killed Mutants =: 4
+Total number of Reached Mutants =: 10
+Total number of Dead Mutants =: 0
+Total number of Total Mutants =: 10
+Mutation Score (Killed/Reached) =: 40%
+============Report-Finish====================
+mv: cannot stat 'even-DeadMutantsList.txt': No such file or directory
+user@NITMINER:/mnt/d/TRUSTINN/DSE_MUTATION_ANALYSER$        user@NITMINER:/mnt/d/TRUSTINN/DYNAMIC_SYMBOLIC_EXECUTION$ ./KLEE.sh even.c
+This code is developed by NITMiner Technologies Pvt Ltd.
+KLEE: KLEE: WATCHDOG: watching 817
+
+KLEE: output directory is "/mnt/d/TRUSTINN/DYNAMIC_SYMBOLIC_EXECUTION/klee-out-3"
+Using STP solver backend
+KLEE: WARNING: undefined reference to function: printf
+KLEE: WARNING ONCE: calling external: printf(109150008477784)
+************Basic Block Coverage Report Starts****************
+KLEE: done: Total number of single time Visited Basic Blocks: 4
+KLEE: done: Total number of Basic Blocks: 5
+************Basic Block Coverage Report Ends****************
+************ICMP/Atomic Condition Coverage Report Starts****************
+KLEE: done: Total number of Covered ICMP/Atomic Condition: 1
+KLEE: done: Total number of All ICMP/Atomic Condition: 1
+************ICMP/Atomic Condition Coverage Report Ends****************
+KLEE: Memory cap NOT exceeded!
+
+
+KLEE: done: total instructions = 24
+KLEE: done: completed paths = 1, among which
+KLEE: done:     early-terminating paths (instruction time limit, solver timeout, max-depth reached) = 0
+KLEE: done:     error paths = 0
+KLEE: done:     program exit paths = 1
+KLEE: done: generated tests = 1, among which
+KLEE: done:     early-terminating tests (instruction time limit, solver timeout, max-depth reached) = 0
+KLEE: done:     error tests = 0
+KLEE: done:     program exit tests = 1
+Oddmkdir: cannot create directory ‘even-1’: File exists
+mv: cannot move 'klee-out-0' to 'even-1/klee-out-0': Directory not empty
+--------------------------------------------------------------------------------
+|      Path       |  Instrs|  Time(s)|  ICov(%)|  BCov(%)|  ICount|  TSolver(%)|
+--------------------------------------------------------------------------------
+|even-1/klee-out-0|      24|     0.01|     8.42|     2.94|     285|        0.00|
+--------------------------------------------------------------------------------
+user@NITMINER:/mnt/d/TRUSTINN/DYNAMIC_SYMBOLIC_EXECUTION$        user@NITMINER:/mnt/d/TRUSTINN/DSE_WITH_PRUNING$ ./tx.sh even.c
+This code is developed by NITMiner Technologies Pvt Ltd.
+KLEE: KLEE: WATCHDOG: watching 845
+
+KLEE: output directory is "/mnt/d/TRUSTINN/DSE_WITH_PRUNING/klee-out-4"
+Using Z3 solver backend
+KLEE: WARNING: undefined reference to function: printf
+KLEE: WARNING ONCE: calling external: printf(106025644369896)
+************Basic Block Coverage Report Starts****************
+KLEE: done: Total number of single time Visited Basic Blocks: 4
+KLEE: done: Total number of Basic Blocks: 5
+************Basic Block Coverage Report Ends****************
+************ICMP/Atomic Condition Coverage Report Starts****************
+KLEE: done: Total number of Covered ICMP/Atomic Condition: 1
+KLEE: done: Total number of All ICMP/Atomic Condition: 1
+************ICMP/Atomic Condition Coverage Report Ends****************
+KLEE: Memory cap NOT exceeded!
+
+KLEE: done: Total reduced symbolic execution tree nodes = 1
+KLEE: done: Total number of visited basic blocks = 4
+
+KLEE: done: Subsumption statistics
+KLEE: done:     Time for actual solver calls in subsumption check (ms) = 0
+KLEE: done:     Number of solver calls for subsumption check (failed) = 0 (0)
+KLEE: done:     Concrete store expression build time (ms) = 0
+KLEE: done:     Symbolic store expression build time (ms) = 0
+KLEE: done:     Solver access time (ms) = 0
+KLEE: done:     Average table entries per subsumption checkpoint = 1.00
+KLEE: done:     Number of subsumption checks = 1
+KLEE: done:     Average solver calls per subsumption check = 0.00
+
+KLEE: done: TxTree method execution times (ms):
+KLEE: done:     setCurrentINode = 0.011
+KLEE: done:     remove = 0.016
+KLEE: done:     subsumptionCheck = 0
+KLEE: done:     markPathCondition = 0.581
+KLEE: done:     split = 0
+KLEE: done:     executeOnNode = 0.242
+KLEE: done:     executeMemoryOperation = 1.301
+
+KLEE: done: TxTreeNode method execution times (ms):
+KLEE: done:     getInterpolant = 0.001
+KLEE: done:     addConstraintTime = 0
+KLEE: done:     splitTime = 0
+KLEE: done:     execute = 0.239
+KLEE: done:     bindCallArguments = 0.01
+KLEE: done:     bindReturnValue = 0
+KLEE: done:     getStoredExpressions = 0
+KLEE: done:     getStoredCoreExpressions = 0
+
+KLEE: done: total instructions = 24
+KLEE: done: completed paths = 1, among which
+KLEE: done:     early-terminating paths (instruction time limit, solver timeout, max-depth reached) = 0
+KLEE: done:     average branching depth of completed paths = 0
+KLEE: done:     average branching depth of subsumed paths = 0
+KLEE: done:     average instructions of completed paths = 23
+KLEE: done:     average instructions of subsumed paths = 0
+KLEE: done:     subsumed paths = 0
+KLEE: done:     error paths = 0
+KLEE: done:     program exit paths = 1
+KLEE: done: generated tests = 1, among which
+KLEE: done:     early-terminating tests (instruction time limit, solver timeout, max-depth reached) = 0
+KLEE: done:     error tests = 0
+KLEE: done:     program exit tests = 1
+
+KLEE: done: NOTE:
+KLEE: done:     Subsumed paths / tests counts are nondeterministic for
+KLEE: done:     programs with dynamically-allocated memory such as those
+KLEE: done:     using malloc, since KLEE may reuse the address of the
+KLEE: done:     same malloc calls in different paths. This nondeterminism
+KLEE: done:     does not cause loss of error reports.
+Odd--------------------------------------------------------------------------------
+|      Path       |  Instrs|  Time(s)|  ICov(%)|  BCov(%)|  ICount|  TSolver(%)|
+--------------------------------------------------------------------------------
+|even-2/klee-out-0|      21|     0.07|     7.07|     2.78|     297|        0.00|
+--------------------------------------------------------------------------------
+user@NITMINER:/mnt/d/TRUSTINN/DSE_WITH_PRUNING$      user@NITMINER:/mnt/d/TRUSTINN/ADVANCE_CODE_COVERAGE_PROFILER$ ./main-gProfiler.sh PS-P3-L-T-R20-B3-SMALL 4 3600
+This code is developed by NITMiner Technologies Pvt Ltd.
+============MC/DC Report============
+***Total no. of feasible MC/DC sequences =  1
+***Total no. of MC/DC sequences =  7
+***MC/DC Score =  14
+============Report-Finish====================
+============SC-MCC Report====================
+***Total no. of feasible SC-MCC sequences =  1
+***Total no. of SC-MCC sequences =  7
+***SC-MCC Score =  14
+============Report-Finish====================
+user@NITMINER:/mnt/d/TRUSTINN/ADVANCE_CODE_COVERAGE_PROFILER$        user@NITMINER:/mnt/d/TRUSTINN/MUTATION_TESTING_PROFILER$ ./main-gProfiler.sh PS-P3-L-T-R20-B3-SMALL.c 4 3600
+This code is developed by NITMiner Technologies pvt ltd.
+cp: cannot stat 'Programs/GCOV/PS-P3-L-T-R20-B3-SMALL.c': No such file or directory
+POINT: 481
+POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0POINT: 481
+POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0POINT: 481
+POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0POINT: 481
+POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0POINT: 481
+POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0POINT: 481
+POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0POINT: 481
+POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0POINT: 482
+Input symb set to 0
+0--------------------------
+============Mutation Report====================
+***Total no. of Killed Mutants =  25
+***Total no. of Mutants =  42
+***Mutation Score =  59
+============Report-Finish====================
+user@NITMINER:/mnt/d/TRUSTINN/MUTATION_TESTING_PROFILER$       user@NITMINER:/mnt/d/TRUSTINN/JAVA$ ./shellsc.sh Demo.java
+This code is developed by NITMiner Technologies Pvt Ltd.
+Running JavaAssertSynthesizer on Demo.java...
+Processing File: Demo.java
+-----------------------------------
+Compilation: SUCCESS (Demo.class generated)
+-----------------------------------
+JBMC Assertion Analysis:
+
+line 8 assertion: FAILURE
+line 9 assertion: SUCCESS
+line 10 assertion: SUCCESS
+line 11 assertion: SUCCESS
+line 16 assertion: SUCCESS
+line 17 assertion: SUCCESS
+line 18 assertion: SUCCESS
+line 19 assertion: SUCCESS
+
+-----------------------------------
+Total Assertion Failure: 1
+Total Assertion Added: 8
+Conditional Coverage: 87%
+user@NITMINER:/mnt/d/TRUSTINN/JAVA$      user@NITMINER:/mnt/d/TRUSTINN/PYTHON$ ./shellpy.sh SAMPLES/cricket_scorer.py
+Modified file written to mod_cricket_scorer.py
+Processing File: cricket_scorer.py
+-----------------------------------
+Compilation (Syntax Check): SUCCESS
+-----------------------------------
+Assertion Analysis:
+
+--- Batting Performance ---
+Dot ball master. SR: 0.0
+Runs: -5 (10 balls) | Poor innings | Slow SR: -50.0
+Runs: 15 (20 balls) | Poor innings | Moderate SR: 75.0
+Dot ball master. SR: 0.0
+Runs: 45 (38 balls) | Decent innings | Good SR: 118.4
+Runs: 87 (60 balls) | Good innings | Good SR: 145.0
+Runs: 112 (95 balls) | Excellent innings | Good SR: 117.9
+Runs: 55 (30 balls) | Good innings | Explosive SR: 183.3
+Runs: 8 (10 balls) | Poor innings | Moderate SR: 80.0
+Runs: 35 (50 balls) | Decent innings | Moderate SR: 70.0
+Runs: 75 (60 balls) | Good innings | Good SR: 125.0
+Runs: -2 (5 balls) | Poor innings | Slow SR: -40.0
+Runs: 100 (0 balls) | Excellent innings | Slow SR: 0.0
+
+--- Match Results ---
+Team 1 wins by 23 runs!
+Team 2 wins by 35 runs!
+Match tied! Super over needed.
+Team 2 wins by 160 runs!
+Team 1 wins by 50 runs!
+Team 2 wins by 150 runs!
+Team 1 wins by 5 runs!
+
+--- Bowling Analysis ---
+0/45 in 4 overs | Wicket-less spell. | Economy: 11.25 (Very expensive)
+1/30 in 4 overs | Wicket taker. | Economy: 7.50 (Average economy)
+3/28 in 4 overs | Three-wicket haul. Good effort. | Economy: 7.00 (Average economy)
+5/22 in 4 overs | Five-fer! Exceptional bowling. | Economy: 5.50 (Economical)
+2/55 in 4 overs | Wicket taker. | Economy: 13.75 (Very expensive)
+6/35 in 4 overs | Five-fer! Exceptional bowling. | Economy: 8.75 (Expensive)
+2/18 in 3 overs | Wicket taker. | Economy: 6.00 (Average economy)
+-1/30 in 4 overs | Wicket-less spell. | Economy: 7.50 (Average economy)
+2/-10 in 4 overs | Wicket taker. | Economy: -2.50 (Economical)
+3/20 in 0 overs | Three-wicket haul. Good effort. | Economy: 0.00 (Economical)
+3/20 in -1 overs | Three-wicket haul. Good effort. | Economy: 0.00 (Economical)
+
+--- Chase Meter ---
+Required RR: 20.00 - Near impossible!
+Required RR: 16.00 - Very challenging.
+Required RR: 15.00 - Very challenging.
+Required RR: 15.00 - Very challenging.
+Required RR: 11.25 - Difficult but possible.
+Required RR: 16.67 - Very challenging.
+Required RR: -10.00 - Comfortable chase.
+Required RR: 10.00 - Difficult but possible.
+
+--- Player of the Match ---
+Runs:105 Wickets:0 Catches:1 -> Strong contender. Score: 58
+Runs:30 Wickets:5 Catches:0 -> Player of the Match! Contribution score: 65
+Runs:50 Wickets:2 Catches:3 -> Player of the Match! Contribution score: 60
+Runs:10 Wickets:1 Catches:1 -> Decent contribution. Score: 18
+Runs:75 Wickets:3 Catches:2 -> Player of the Match! Contribution score: 68
+Runs:45 Wickets:1 Catches:0 -> Decent contribution. Score: 25
+Runs:-50 Wickets:2 Catches:1 -> Decent contribution. Score: 18
+Runs:80 Wickets:-1 Catches:2 -> Strong contender. Score: 38
+
+=== Assertion Summary ===
+Total assertion violations: 110
+Unique assertions covered: 48
+Total tracked assertions: 73
+ - Line 2: [IF-branch covered] Condition was True: (runs < 0) or (balls <= 0)
+ - Line 5: [IF-branch covered] Condition was True: (runs == 0)
+ - Line 7: [IF-branch covered] Condition was True: (runs < 20)
+ - Line 9: [IF-branch covered] Condition was True: (runs < 50)
+ - Line 11: [IF-branch covered] Condition was True: (runs < 100)
+ - Line 11: [ELSE-branch covered] Condition was False: (runs < 100)
+ - Line 11: [Boundary] runs is exactly at boundary 100
+ - Line 15: [IF-branch covered] Condition was True: (strike_rate < 60)
+ - Line 17: [IF-branch covered] Condition was True: (strike_rate < 100)
+ - Line 19: [IF-branch covered] Condition was True: (strike_rate < 150)
+ - Line 19: [ELSE-branch covered] Condition was False: (strike_rate < 150)
+ - Line 27: [IF-branch covered] Condition was True: (team1_score < 0) or (team2_score < 0)
+ - Line 31: [IF-branch covered] Condition was True: (team1_score > team2_score)
+ - Line 34: [IF-branch covered] Condition was True: (team2_score > team1_score)
+ - Line 41: [IF-branch covered] Condition was True: (wickets < 0) or (runs_given < 0) or (overs_bowled <= 0)
+ - Line 44: [IF-branch covered] Condition was True: (wickets >= 5)
+ - Line 44: [Boundary] wickets is exactly at boundary 5
+ - Line 46: [IF-branch covered] Condition was True: (wickets >= 3)
+ - Line 46: [Boundary] wickets is exactly at boundary 3
+ - Line 48: [ELSE-branch covered] Condition was False: (wickets >= 1)
+ - Line 48: [IF-branch covered] Condition was True: (wickets >= 1)
+ - Line 48: [Boundary] wickets is exactly at boundary 1
+ - Line 52: [IF-branch covered] Condition was True: (economy < 6)
+ - Line 54: [IF-branch covered] Condition was True: (economy < 8)
+ - Line 56: [ELSE-branch covered] Condition was False: (economy < 10)
+ - Line 56: [IF-branch covered] Condition was True: (economy < 10)
+ - Line 64: [IF-branch covered] Condition was True: (target <= 0)
+ - Line 71: [IF-branch covered] Condition was True: (required_rate > 18)
+ - Line 73: [IF-branch covered] Condition was True: (required_rate > 12)
+ - Line 75: [IF-branch covered] Condition was True: (required_rate > 8)
+ - Line 84: [IF-branch covered] Condition was True: (batting_runs >= 100)
+ - Line 86: [IF-branch covered] Condition was True: (batting_runs >= 50)
+ - Line 86: [Boundary] batting_runs is exactly at boundary 50
+ - Line 88: [IF-branch covered] Condition was True: (batting_runs >= 30)
+ - Line 88: [Boundary] batting_runs is exactly at boundary 30
+ - Line 90: [IF-branch covered] Condition was True: (bowling_wickets >= 5)
+ - Line 90: [Boundary] bowling_wickets is exactly at boundary 5
+ - Line 92: [IF-branch covered] Condition was True: (bowling_wickets >= 3)
+ - Line 92: [Boundary] bowling_wickets is exactly at boundary 3
+ - Line 94: [IF-branch covered] Condition was True: (bowling_wickets >= 1)
+ - Line 94: [Boundary] bowling_wickets is exactly at boundary 1
+ - Line 96: [IF-branch covered] Condition was True: (fielding_catches >= 3)
+ - Line 96: [Boundary] fielding_catches is exactly at boundary 3
+ - Line 98: [IF-branch covered] Condition was True: (fielding_catches >= 1)
+ - Line 98: [Boundary] fielding_catches is exactly at boundary 1
+ - Line 100: [IF-branch covered] Condition was True: (score >= 60)
+ - Line 100: [Boundary] score is exactly at boundary 60
+ - Line 102: [IF-branch covered] Condition was True: (score >= 30)
+
+Missed (Passed) Assertions: 25
+ - Line 5: [MISSED] [Equality verified] runs == 0
+ - Line 7: [MISSED] [Boundary] runs is exactly at boundary 20
+ - Line 15: [MISSED] [Boundary] strike_rate is exactly at boundary 60
+ - Line 29: [MISSED] [IF-branch covered] Condition was True: (overs <= 0)
+ - Line 29: [MISSED] [Boundary] overs is exactly at boundary 0
+ - Line 31: [MISSED] [Boundary] team1_score is exactly at boundary team2_score
+ - Line 34: [MISSED] [Boundary] team2_score is exactly at boundary team1_score
+ - Line 52: [MISSED] [Boundary] economy is exactly at boundary 6
+ - Line 64: [MISSED] [Boundary] target is exactly at boundary 0
+ - Line 66: [MISSED] [IF-branch covered] Condition was True: (overs_remaining <= 0)
+ - Line 66: [MISSED] [Boundary] overs_remaining is exactly at boundary 0
+ - Line 68: [MISSED] [IF-branch covered] Condition was True: (wickets_remaining <= 0)
+ - Line 68: [MISSED] [Boundary] wickets_remaining is exactly at boundary 0
+ - Line 71: [MISSED] [Boundary] required_rate is exactly at boundary 18
+ - Line 73: [MISSED] [Boundary] required_rate is exactly at boundary 12
+ - Line 75: [MISSED] [Boundary] required_rate is exactly at boundary 8
+ - Line 77: [MISSED] [IF-branch covered] Condition was True: (required_rate > 6)
+ - Line 77: [MISSED] [Boundary] required_rate is exactly at boundary 6
+ - Line 84: [MISSED] [Boundary] batting_runs is exactly at boundary 100
+ - Line 102: [MISSED] [Boundary] score is exactly at boundary 30
+ - Line 9: [MISSED] [Boundary] runs is exactly at boundary 50
+ - Line 17: [MISSED] [Boundary] strike_rate is exactly at boundary 100
+ - Line 54: [MISSED] [Boundary] economy is exactly at boundary 8
+ - Line 19: [MISSED] [Boundary] strike_rate is exactly at boundary 150
+ - Line 56: [MISSED] [Boundary] economy is exactly at boundary 10
+
+-----------------------------------
+Failed Assertion: 110
+Unique Assertions : 48
+Passed Assertions : 25
+Total Assertion : 73
+Conditional Coverage: 34.25%
+user@NITMINER:/mnt/d/TRUSTINN/PYTHON$      user@NITMINER:/mnt/d/TRUSTINN/SOLIDITY$ ./latest.sh Land.sol bmc
+This code is developed by NITMiner Techlogies Pvt Ltd
+============================================================
+Processing Contract: Land.sol
+============================================================
+Properties inserted : 14
+Properties violation detected (dynamic) : 14
+Properties violation detected (unique) : 14
+Total atomic condition : 7
+Condition Coverage % : 100%
+Total runtime in seconds : .711404334
+Total runtime: 0:0:0:.711404334
+
+user@NITMINER:/mnt/d/TRUSTINN/SOLIDITY$ ./latest.sh Land.sol chc
+This code is developed by NITMiner Techlogies Pvt Ltd
+============================================================
+Processing Contract: Land.sol
+============================================================
+Properties inserted : 14
+Properties violation detected (dynamic) : 6
+Properties violation detected (unique) : 6
+Total atomic condition : 7
+Condition Coverage % : 42%
+Total runtime in seconds : 9.092251973
+Total runtime: 0:0:0:9.092251973
+
+
+
+
+Input as folder
+
+user@NITMINER:/mnt/d/TRUSTINN/SOLIDITY$ ./latest.sh Akashic bmc
+This code is developed by NITMiner Techlogies Pvt Ltd
+===================================================
+Processing Contract: Akashic.sol
+===================================================
+0
+==============
+Properties inserted : 0
+Properties violation detected (dynamic) : 0
+Properties violation detected (unique) : 0
+Total atomic condition : 0
+Condition Coverage % : 0%
+===================================================
+Processing Contract: Context.sol
+===================================================
+0
+==============
+Properties inserted : 0
+Properties violation detected (dynamic) : 0
+Properties violation detected (unique) : 0
+Total atomic condition : 0
+Condition Coverage % : 0%
+===================================================
+Processing Contract: ERC20.sol
+===================================================
+22
+==============
+Properties inserted : 22
+Properties violation detected (dynamic) : 22
+Properties violation detected (unique) : 22
+Total atomic condition : 11
+Condition Coverage % : 100%
+===================================================
+Processing Contract: IERC20.sol
+===================================================
+0
+==============
+Properties inserted : 0
+Properties violation detected (dynamic) : 0
+Properties violation detected (unique) : 0
+Total atomic condition : 0
+Condition Coverage % : 0%
+===================================================
+Processing Contract: IERC20Metadata.sol
+===================================================
+0
+==============
+Properties inserted : 0
+Properties violation detected (dynamic) : 0
+Properties violation detected (unique) : 0
+Total atomic condition : 0
+Condition Coverage % : 0%
+===================================================
+Final result of the Akashic Project
+===================================================
+ Akashic Project total Assert count: 22
+ Akashic Project total Properties violation detected (dynamic): 22
+ Akashic Project total violation detected (unique): 22
+ Akashic Project total atomic condition: 11
+ Akashic Project total Condition Coverage % : 100%
+****************Time Analysis****************
+ Akashic Project total runtime in seconds : 3.241216241
+ Akashic Project total runtime: 0:0:0:3.241216241
+===================================================
+user@NITMINER:/mnt/d/TRUSTINN/SOLIDITY$ ./latest.sh Akashic chc
+This code is developed by NITMiner Techlogies Pvt Ltd
+===================================================
+Processing Contract: Akashic.sol
+===================================================
+0
+==============
+Properties inserted : 0
+Properties violation detected (dynamic) : 0
+Properties violation detected (unique) : 0
+Total atomic condition : 0
+Condition Coverage % : 0%
+===================================================
+Processing Contract: Context.sol
+===================================================
+0
+==============
+Properties inserted : 0
+Properties violation detected (dynamic) : 0
+Properties violation detected (unique) : 0
+Total atomic condition : 0
+Condition Coverage % : 0%
+===================================================
+Processing Contract: ERC20.sol
+===================================================
+22
+==============
+Properties inserted : 22
+Properties violation detected (dynamic) : 14
+Properties violation detected (unique) : 14
+Total atomic condition : 11
+Condition Coverage % : 63%
+===================================================
+Processing Contract: IERC20.sol
+===================================================
+0
+==============
+Properties inserted : 0
+Properties violation detected (dynamic) : 0
+Properties violation detected (unique) : 0
+Total atomic condition : 0
+Condition Coverage % : 0%
+===================================================
+Processing Contract: IERC20Metadata.sol
+===================================================
+0
+==============
+Properties inserted : 0
+Properties violation detected (dynamic) : 0
+Properties violation detected (unique) : 0
+Total atomic condition : 0
+Condition Coverage % : 0%
+===================================================
+Final result of the Akashic Project
+===================================================
+ Akashic Project total Assert count: 22
+ Akashic Project total Properties violation detected (dynamic): 14
+ Akashic Project total violation detected (unique): 14
+ Akashic Project total atomic condition: 11
+ Akashic Project total Condition Coverage % : 63%
+****************Time Analysis****************
+ Akashic Project total runtime in seconds : 25.210268489
+ Akashic Project total runtime: 0:0:0:25.210268489
+===================================================
+user@NITMINER:/mnt/d/TRUSTINN/SOLIDITY$
