@@ -1,6 +1,6 @@
 {
   "name": "trustinn-windowss",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "Trustinn Windows Electron application",
   "main": "main.js",
   "scripts": {
