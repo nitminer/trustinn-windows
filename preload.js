@@ -36,5 +36,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   stopTool: () => ipcRenderer.invoke('tool:stop'),
   openOutputFolder: (folderPath) => ipcRenderer.invoke('tool:open-output-folder', folderPath),
   copyText: (text) => ipcRenderer.invoke('tool:copy-text', text),
-  getToolAnalytics: (folderPath) => ipcRenderer.invoke('tool:get-analytics', folderPath)
+  getToolAnalytics: (folderPath) => ipcRenderer.invoke('tool:get-analytics', folderPath),
+  listSamples: (payload) => ipcRenderer.invoke('tool:list-samples', payload)
 });

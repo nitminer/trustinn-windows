@@ -66,12 +66,12 @@ function getToolConfig(language, toolIndex, subtoolIndex) {
       {
         label: 'Adv. Coverage Profiler',
         toolDir: 'ADVANCE_CODE_COVERAGE_PROFILER',
-        buildCommand: ({ inputBaseName, params }) => `bash main-gProfiler.sh ${quoteDockerArgs(stripExtension(inputBaseName))} ${quoteDockerArgs(params.p3 || '1.0')} ${quoteDockerArgs(params.p4 || '60')}`
+        buildCommand: ({ inputBaseName, params }) => `bash main-gProfiler.sh ${quoteDockerArgs(stripExtension(inputBaseName))} ${quoteDockerArgs(params.p3 || '4')} ${quoteDockerArgs(params.p4 || '3600')}`
       },
       {
         label: 'Mutation Testing Profiler',
         toolDir: 'MUTATION_TESTING_PROFILER',
-        buildCommand: ({ inputBaseName, params }) => `bash main-gProfiler.sh ${quoteDockerArgs(inputBaseName)} ${quoteDockerArgs(params.p5 || '1.0')} ${quoteDockerArgs(params.p6 || '60')}`
+        buildCommand: ({ inputBaseName, params }) => `bash main-gProfiler.sh ${quoteDockerArgs(inputBaseName)} ${quoteDockerArgs(params.p5 || '4')} ${quoteDockerArgs(params.p6 || '3600')}`
       }
     ],
     java: [
@@ -308,20 +308,30 @@ async function cleanupDir(dirPath) {
 
 function buildContainerScript({ toolConfig, inputName, outputFolderName, params, isFolder }) {
   const inputRef = inputName;
-  const command = toolConfig.buildCommand({ inputRef, inputName, inputBaseName: inputName, params });
+  const inputBaseName = path.parse(inputName).name;
+
+  const command = toolConfig.buildCommand({
+    inputRef,
+    inputName,
+    inputBaseName,
+    params
+  });
+
   const outputPath = `${HOST_OUTPUT_DIR}/${outputFolderName}`;
   const escapedOutputPath = shellEscape(outputPath);
   const escapedInputPath = shellEscape(`${HOST_INPUT_DIR}/${inputName}`);
-  const aliases = !isFolder && Array.isArray(toolConfig.inputAliases) ? toolConfig.inputAliases : [];
+
+  const aliases = !isFolder && Array.isArray(toolConfig.inputAliases)
+    ? toolConfig.inputAliases
+    : [];
+
   const aliasCommands = aliases
-    .filter((alias) => alias && alias !== inputName)
-    .map((alias) => {
-    const aliasPath = alias;
-    return [
-      `mkdir -p ${shellEscape(path.dirname(aliasPath))}`,
-      `cp ${shellEscape(inputName)} ${shellEscape(aliasPath)}`
-    ].join('\n');
-  }).join('\n');
+    .filter(alias => alias && alias !== inputName)
+    .map(alias => [
+      `mkdir -p ${shellEscape(path.dirname(alias))}`,
+      `cp ${shellEscape(inputName)} ${shellEscape(alias)}`
+    ].join('\n'))
+    .join('\n');
 
   const bcShimPython = [
     'import math',
@@ -373,7 +383,8 @@ function buildContainerScript({ toolConfig, inputName, outputFolderName, params,
     '    print(result)'
   ].join('\n');
 
-  const bcShimScript = `if ! command -v bc >/dev/null 2>&1; then
+  const bcShimScript = `
+if ! command -v bc >/dev/null 2>&1; then
   bc() {
     python3 -c ${shellEscape(bcShimPython)}
   }
@@ -381,21 +392,70 @@ function buildContainerScript({ toolConfig, inputName, outputFolderName, params,
 fi`;
 
   return `set -e
+
 cd ${shellEscape(`${CONTAINER_WORKSPACE}/${toolConfig.toolDir}`)}
+
+# Copy uploaded file/folder into tool directory
 cp -R ${escapedInputPath} ./
+
+# Legacy tools expect the file in Programs/GCOV
+mkdir -p Programs/GCOV
+
+if [ -f ${shellEscape(inputName)} ]; then
+  cp ${shellEscape(inputName)} Programs/GCOV/${shellEscape(inputName)}
+fi
+
 ${aliasCommands}
+
 ${bcShimScript}
+
+# Inject mock definitions for CBMC to avoid GCC implicit declaration errors
+find . -type f -name "*.c" | while read -r f; do
+  if grep -q "nondet_int" "$f" && ! grep -q "int nondet_int" "$f"; then
+    echo "Injecting mock definitions into $f"
+    cat << 'EOF' > trustinn_stubs.tmp
+#ifndef __CPROVER
+int nondet_int() { return 0; }
+void __CPROVER_input(const char* name, int val) {}
+void __CPROVER_assume(int cond) {}
+#endif
+EOF
+    cat "$f" >> trustinn_stubs.tmp
+    mv trustinn_stubs.tmp "$f"
+    # Also update the copy in Programs/GCOV if it exists
+    base=$(basename "$f")
+    if [ -f "Programs/GCOV/$base" ]; then
+      cp "$f" "Programs/GCOV/$base"
+    fi
+  fi
+done
+
 marker=$(mktemp)
 touch "$marker"
+
+echo "========== FILE CHECK =========="
+pwd
+ls -la
+echo "---------- first 20 lines ----------"
+head -20 ${inputName}
+echo "---------- nondet search ----------"
+grep -n "nondet_int" ${inputName} || true
+grep -n "__CPROVER_input" ${inputName} || true
+echo "==================================="
+
 ${command}
+
 output_path=${escapedOutputPath}
 mkdir -p "$output_path"
+
 find . -type f -newer "$marker" ! -path "./${STAGING_DIR_NAME}/*" -print0 | while IFS= read -r -d '' file; do
   dest="$output_path/$file"
   mkdir -p "$(dirname "$dest")"
   cp "$file" "$dest"
 done
-printf '%s\n' '${toolConfig.outputLabel}' > "$output_path/tool.txt"`;
+
+printf '%s\n' '${toolConfig.outputLabel}' > "$output_path/tool.txt"
+`;
 }
 
 async function runDockerTool(payload, hooks = {}) {
@@ -421,6 +481,16 @@ async function runDockerTool(payload, hooks = {}) {
     params: payload.params || {},
     isFolder: input.isFolder
   });
+
+console.log('================================');
+console.log('SOURCE PATH:', input.sourcePath);
+console.log('SOURCE BASE:', input.sourceBaseName);
+console.log('TEMP ROOT:', input.tempRoot);
+console.log('SOURCE TARGET:', input.sourceTarget);
+console.log('================================');
+console.log("========== DOCKER SCRIPT ==========");
+console.log(script);
+console.log("===================================");
 
   const dockerArgs = [
     'run',

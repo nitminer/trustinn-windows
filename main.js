@@ -203,6 +203,46 @@ ipcMain.handle('tool:get-analytics', (_event, folderPath) => {
   return { success: false, message: 'No analytics summary found.' };
 });
 
+ipcMain.handle('tool:list-samples', (_event, payload) => {
+  const { language, toolIndex } = payload;
+  const sampleMap = {
+    'c': [
+      'CC-bounded-Model-Checker',
+      'DSE MUTATION ANALYSER',
+      'DYNAMIC SYMBOLIC EXECUTION',
+      'DSE WITH PRUNING',
+      'AdvanceCodeCoverageProfiler',
+      'Mutation testing profiler'
+    ],
+    'java': ['JAVA'],
+    'python': ['PYTHON'],
+    'solidity': ['SOLIDITY']
+  };
+
+  const folderName = sampleMap[language]?.[toolIndex];
+  if (!folderName) return { success: false, message: 'No samples configured for this tool.' };
+
+  const folderPath = path.join(__dirname, 'sampleprograms', folderName);
+  if (!fs.existsSync(folderPath)) {
+    return { success: false, message: 'Samples directory not found.' };
+  }
+
+  try {
+    const entries = fs.readdirSync(folderPath, { withFileTypes: true });
+    const files = entries
+      .filter(e => e.isFile() || e.isDirectory())
+      .filter(e => !e.name.startsWith('.'))
+      .map(e => ({
+        name: e.name,
+        kind: e.isDirectory() ? 'folder' : 'file',
+        path: path.join(folderPath, e.name)
+      }));
+    return { success: true, files };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+});
+
 ipcMain.on('restart-and-update', () => {
   console.log('[Auto-Update] Installing update and restarting...');
   autoUpdater.quitAndInstall();

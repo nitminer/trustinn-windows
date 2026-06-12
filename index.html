@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Trustinn — Design 3: Workshop Floor</title>
+<title>Trustinn — NITMiner Technologies Pvt. Ltd.</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1314,6 +1315,19 @@
   animation: spin 0.8s linear infinite;
 }
 
+.exec-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(124, 58, 237, 0.3);
+  border-top-color: #7c3aed;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+  margin-top: -2px;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -1517,6 +1531,13 @@
           </button>
           <div id="folder-selection-label" style="font-family:var(--mono);font-size:9px;color:#64748b;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">No folder selected</div>
         </div>
+        <button type="button" class="file-btn" id="fb3" onclick="openSamplesModal()">
+          <div class="file-icon">📚</div>
+          <div class="file-text-wrap">
+            <div class="file-main">Load Samples</div>
+            <div class="file-sub">Select an example file</div>
+          </div>
+        </button>
       </div>
     </div>
 
@@ -1569,12 +1590,12 @@
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-inner">
-      <div class="m-stats">
+      <div class="m-stats " style="display: none;">
         <div class="m-stat"><div class="m-stat-n" id="ms1">0</div><div class="m-stat-l">Total Runs</div></div>
         <div class="m-stat"><div class="m-stat-n">—</div><div class="m-stat-l">Avg. Time</div></div>
         <div class="m-stat"><div class="m-stat-n">—</div><div class="m-stat-l">Pass Rate</div></div>
       </div>
-      <div class="m-result" id="m-result">
+      <div class="m-result d-none" id="m-result"  style="display: none;">
         <div class="m-result-head">Latest Result</div>
         <div class="m-result-grid" id="m-result-grid"></div>
       </div>
@@ -1583,8 +1604,17 @@
         <div class="m-health" id="m-health"></div>
         <div class="m-insights-list" id="m-insights-list"></div>
       </div>
-      <div class="m-log-head">Execution Log</div>
-      <div id="m-log-list"><div class="m-log-row"><span class="m-log-t">—</span><span>No runs yet</span></div></div>
+      
+      <!-- Chart Containers -->
+      <div id="m-charts-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+        <div style="background: #fff; border: 1px solid rgba(203,213,225,0.7); border-radius: 14px; padding: 12px; height: 200px;">
+          <canvas id="javaAssertionsChart"></canvas>
+        </div>
+        <div style="background: #fff; border: 1px solid rgba(203,213,225,0.7); border-radius: 14px; padding: 12px; height: 200px;">
+          <canvas id="javaCoverageChart"></canvas>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -1644,6 +1674,19 @@
 
     <div class="auth-footer">
       <a href="#" class="auth-footer-link">Need help? Contact support</a>
+    </div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="samples-modal-wrap" onclick="samplesBgClose(event)">
+  <div class="modal-box">
+    <div class="modal-top">
+      <div class="modal-top-text">Select Sample File</div>
+      <button class="modal-close" onclick="closeSamplesModal()">✕</button>
+    </div>
+    <div class="modal-inner">
+      <div id="samples-list" style="display: flex; flex-direction: column; gap: 8px;">
+      </div>
     </div>
   </div>
 </div>
