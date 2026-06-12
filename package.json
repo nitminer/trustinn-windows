@@ -31,7 +31,8 @@
       "index.html",
       "logo/**",
       "package.json",
-      "node_modules/**"
+      "node_modules/**",
+      "sampleprograms/**"
     ],
     "directories": {
       "output": "dist",

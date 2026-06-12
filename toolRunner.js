@@ -433,15 +433,19 @@ done
 marker=$(mktemp)
 touch "$marker"
 
-echo "========== FILE CHECK =========="
+
 pwd
 ls -la
-echo "---------- first 20 lines ----------"
-head -20 ${inputName}
-echo "---------- nondet search ----------"
-grep -n "nondet_int" ${inputName} || true
-grep -n "__CPROVER_input" ${inputName} || true
-echo "==================================="
+if [ -f "${inputName}" ]; then
+  echo "---------- first 20 lines ----------"
+  head -20 "${inputName}"
+  echo "---------- nondet search ----------"
+  grep -n "nondet_int" "${inputName}" || true
+  grep -n "__CPROVER_input" "${inputName}" || true
+else
+  echo "---------- target is a folder ----------"
+fi
+
 
 ${command}
 

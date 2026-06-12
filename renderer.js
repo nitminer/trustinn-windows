@@ -1221,12 +1221,15 @@ function buildRunPayload() {
   const sourcePath = getSelectedInputPath();
   if (!sourcePath) throw new Error('Please choose an input file or folder first.');
   const toolConfig = TOOLS[lang][tool];
+  if (toolConfig.subtools && sub === null) {
+    throw new Error('Please select a subtool (e.g., BMC or CHC) before executing.');
+  }
   const sourceName = getSelectedInputName();
   const isFolder = selectedSource.kind === 'folder';
   return {
     language: lang,
     toolIndex: tool,
-    subtoolIndex: toolConfig.subtools ? (sub ?? 0) : null,
+    subtoolIndex: toolConfig.subtools ? sub : null,
     params: getParamValues(),
     sourcePath,
     isFolder,
