@@ -279,17 +279,27 @@ function collectFiles(rootDir) {
   return results.sort();
 }
 
+async function asarSafeCopy(src, dest) {
+  const stats = await fsp.stat(src);
+  if (stats.isDirectory()) {
+    await fsp.mkdir(dest, { recursive: true });
+    const entries = await fsp.readdir(src, { withFileTypes: true });
+    for (const entry of entries) {
+      await asarSafeCopy(path.join(src, entry.name), path.join(dest, entry.name));
+    }
+  } else {
+    const data = await fsp.readFile(src);
+    await fsp.writeFile(dest, data);
+  }
+}
+
 async function prepareHostInput(payload, runId) {
   const source = getSourceSelection(payload);
   const tempRoot = path.join(os.tmpdir(), 'trustinn-inputs', runId);
   await fsp.mkdir(tempRoot, { recursive: true });
 
   const sourceTarget = path.join(tempRoot, source.sourceBaseName);
-  if (source.isFolder) {
-    await fsp.cp(source.sourcePath, sourceTarget, { recursive: true });
-  } else {
-    await fsp.copyFile(source.sourcePath, sourceTarget);
-  }
+  await asarSafeCopy(source.sourcePath, sourceTarget);
 
   return {
     ...source,
