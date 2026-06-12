@@ -1876,8 +1876,9 @@ async function openSamplesModal() {
     
     samplesListEl.innerHTML = res.files.map(file => {
       const icon = file.kind === 'folder' ? '📁' : '📄';
+      const safePath = file.path.replace(/\\/g, '/');
       return `
-        <button class="file-btn" style="padding: 10px; min-height: auto;" onclick="selectSampleFile('${file.path.replace(/\\\\/g, '\\\\\\\\')}', '${file.name}', '${file.kind}')">
+        <button class="file-btn" style="padding: 10px; min-height: auto;" onclick="selectSampleFile('${safePath}', '${file.name}', '${file.kind}')">
           <div class="file-icon" style="width: 24px; height: 24px; font-size: 12px;">${icon}</div>
           <div class="file-text-wrap">
             <div class="file-main" style="font-size: 11px;">${file.name}</div>
