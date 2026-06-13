@@ -29,7 +29,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
 
   // Docker-backed Trustinn tool execution
-  pickInputFile: () => ipcRenderer.invoke('tool:pick-file'),
+  pickInputFile: (language) => ipcRenderer.invoke('tool:pick-file', language),
   pickInputFolder: () => ipcRenderer.invoke('tool:pick-folder'),
   validateTool: (payload) => ipcRenderer.invoke('tool:validate', payload),
   runTool: (payload) => ipcRenderer.invoke('tool:run', payload),

@@ -99,12 +99,29 @@ app.on('window-all-closed', () => {
 
 ipcMain.handle('get-app-version', () => app.getVersion());
 
-ipcMain.handle('tool:pick-file', async () => {
+ipcMain.handle('tool:pick-file', async (_event, language) => {
+  let exts = ['c', 'h', 'java', 'py', 'sol'];
+  let filterName = 'Supported files';
+  
+  if (language === 'c') {
+    exts = ['c', 'h'];
+    filterName = 'C files';
+  } else if (language === 'java') {
+    exts = ['java'];
+    filterName = 'Java files';
+  } else if (language === 'python') {
+    exts = ['py'];
+    filterName = 'Python files';
+  } else if (language === 'solidity') {
+    exts = ['sol'];
+    filterName = 'Solidity files';
+  }
+
   const result = await dialog.showOpenDialog(mainWindow, {
     title: 'Choose Trustinn Input File',
     properties: ['openFile'],
     filters: [
-      { name: 'Supported files', extensions: ['c', 'h', 'java', 'py', 'sol'] },
+      { name: filterName, extensions: exts },
       { name: 'All files', extensions: ['*'] }
     ]
   });

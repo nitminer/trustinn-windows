@@ -1474,7 +1474,7 @@ async function chooseFile() {
     appendLine('File picker is only available in Electron mode.', 'var(--orange)');
     return;
   }
-  const result = await window.electronAPI.pickInputFile();
+  const result = await window.electronAPI.pickInputFile(lang);
   if (result && !result.canceled && result.path) {
     selectedSource = { kind: 'file', path: result.path, name: result.name || basenameLike(result.path) };
     updateSelectedSourceLabels();
@@ -1663,7 +1663,7 @@ async function openModal() {
 
 async function viewOutput() {
   if (!latestOutputDir) {
-    appendLine('No output folder available yet.', 'var(--orange)');
+    appendLine('Please check your Downloads/Trustinn folder for results.', 'var(--orange)');
     return;
   }
   if (!window.electronAPI) {
@@ -1912,11 +1912,54 @@ window.samplesBgClose = samplesBgClose;
 window.selectSampleFile = selectSampleFile;
 
 const outputActions = document.querySelector('.out-actions');
+
 if (outputActions && !document.getElementById('view-output-btn')) {
+  const viewButton = document.createElement('button');
   viewButton.id = 'view-output-btn';
   viewButton.className = 'oa-btn';
-  viewButton.textContent = 'View';
+  viewButton.textContent = 'result';
   viewButton.onclick = viewOutput;
+
+  // Toast function
+  function showToast() {
+    let toast = document.getElementById('download-toast');
+
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'download-toast';
+      toast.textContent =
+        'Please check your Downloads/Trustinn folder for results.';
+      document.body.appendChild(toast);
+
+      Object.assign(toast.style, {
+        position: 'fixed',
+        top:'130px',
+        right: '40px',
+        background: '#333',
+        color: '#fff',
+        padding: '12px 16px',
+        borderRadius: '6px',
+        fontSize: '14px',
+        zIndex: '9999',
+        opacity: '0',
+        transition: 'opacity 0.3s ease'
+      });
+    }
+
+    toast.style.opacity = '1';
+
+    clearTimeout(toast.hideTimer);
+    toast.hideTimer = setTimeout(() => {
+      toast.style.opacity = '0';
+    }, 3000);
+  }
+
+  // Show on hover
+  viewButton.addEventListener('mouseenter', showToast);
+
+  // Show on click
+  viewButton.addEventListener('click', showToast);
+
   outputActions.insertBefore(viewButton, outputActions.children[1] || null);
 }
 
