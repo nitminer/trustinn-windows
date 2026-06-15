@@ -208,7 +208,7 @@ ipcMain.handle('tool:get-analytics', (_event, folderPath) => {
     return { success: false, runs: [] };
   }
 
-  const summaryFile = path.join(folderPath, 'run-summary.json');
+  // const summaryFile = path.join(folderPath, 'run-summary.json');
   if (fs.existsSync(summaryFile)) {
     try {
       return { success: true, summary: JSON.parse(fs.readFileSync(summaryFile, 'utf8')) };

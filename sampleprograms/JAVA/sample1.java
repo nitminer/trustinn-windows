@@ -1,4 +1,4 @@
-public class acntrcode {
+public class sample1 {
     
         
 

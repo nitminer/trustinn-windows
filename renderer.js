@@ -42,7 +42,7 @@ const TOOLS = {
     { name: 'Mutation Testing Profiler', params: [{ l: 'Version', id: 'p5', t: 'text', ph: '4' }, { l: 'Time Bound (s)', id: 'p6', t: 'number', ph: '3600' }] }
   ],
   java: [
-    { name: 'Java Bounded Model Checker', params: [] }
+    { name: 'Java Bounded Model Checker' }
   ],
   python: [
     { name: 'Condition Coverage Fuzzing', params: [] }
@@ -431,7 +431,7 @@ function getLastMatchValue(text, regex) {
 }
 
 function buildAnalyticsInsights(text, runLang, runTool, runSub) {
-  console.log(text, runLang, runSub, runTool);
+  // console.log(text, runLang, runSub, runTool);
   
   const metricPatterns = [
     { label: 'Properties inserted', regex: /Properties inserted\s*:\s*([0-9]+)/gi },
@@ -577,8 +577,8 @@ function renderAnalyticsInsights() {
 
 function renderCharts(runLang, metrics, runTool) {
 
-  console.log('renderCharts called', runLang, metrics);
-  console.log('runLang=', runLang);
+  // console.log('renderCharts called', runLang, metrics);
+  // console.log('runLang=', runLang);
   const javaChartsContainer = document.getElementById('m-charts-container');
   const pythonChartsContainer = document.getElementById('python-charts-container');
   
@@ -1203,7 +1203,7 @@ function getSelectedInputName() { return selectedSource.name || basenameLike(sel
 
 function getParamValues() {
   const toolConfig = TOOLS[lang][tool];
-  const params = toolConfig.subtools && sub !== null ? toolConfig.subtools[sub].params : toolConfig.params;
+  const params = (toolConfig.subtools && sub !== null ? toolConfig.subtools[sub].params : toolConfig.params) || [];
   return params.reduce((accumulator, param) => {
     const input = document.getElementById(param.id);
     accumulator[param.id] = input ? input.value.trim() : '';
@@ -1281,10 +1281,15 @@ function renderParams() {
   let params = toolConfig.params;
   if (toolConfig.subtools && sub !== null) params = toolConfig.subtools[sub].params;
   const paramsBody = document.getElementById('params-body');
-  if (!params.length) {
-    paramsBody.innerHTML = '<div style="font-family:var(--mono);font-size:9px;color:var(--ink-4);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">None required</div>';
+  const paramsRoot = document.getElementById('params-root');
+  
+  if (!params || !params.length) {
+    if (paramsRoot) paramsRoot.style.display = 'none';
+    paramsBody.innerHTML = '';
     return;
   }
+  
+  if (paramsRoot) paramsRoot.style.display = 'block';
   paramsBody.innerHTML = params.map((item) => `<div class="param-block"><label class="param-lbl">${item.l}</label><input class="param-in" id="${item.id}" type="${item.t}" placeholder="${item.ph}"></div>`).join('');
 }
 
@@ -1747,7 +1752,7 @@ if (window.electronAPI) {
     });
 
   window.electronAPI.onUpdateStatus((message) => {
-    console.log('[UI] Update status:', message);
+    // console.log('[UI] Update status:', message);
     setStatus(message);
     if (message.includes('Downloading')) {
       progressBar.style.display = 'block';

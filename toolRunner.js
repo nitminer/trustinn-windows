@@ -434,7 +434,7 @@ EOF
     mv trustinn_stubs.tmp "$f"
     # Also update the copy in Programs/GCOV if it exists
     base=$(basename "$f")
-    if [ -f "Programs/GCOV/$base" ]; then
+    if [ "$f" != "./Programs/GCOV/$base" ] && [ -f "Programs/GCOV/$base" ]; then
       cp "$f" "Programs/GCOV/$base"
     fi
   fi
@@ -468,7 +468,6 @@ find . -type f -newer "$marker" ! -path "./${STAGING_DIR_NAME}/*" -print0 | whil
   cp "$file" "$dest"
 done
 
-printf '%s\n' '${toolConfig.outputLabel}' > "$output_path/tool.txt"
 `;
 }
 
@@ -562,26 +561,26 @@ console.log("===================================");
     child.on('close', async (code) => {
       try {
         const runDurationMs = Date.now() - startedAt;
-        await fsp.writeFile(path.join(hostOutputDir, 'stdout.txt'), stdout || '', 'utf8');
-        await fsp.writeFile(path.join(hostOutputDir, 'stderr.txt'), stderr || '', 'utf8');
+        // await fsp.writeFile(path.join(hostOutputDir, 'stdout.txt'), stdout || '', 'utf8');
+        // await fsp.writeFile(path.join(hostOutputDir, 'stderr.txt'), stderr || '', 'utf8');
         const outputFiles = collectFiles(hostOutputDir);
-        await fsp.writeFile(path.join(hostOutputDir, 'run-summary.json'), JSON.stringify({
-          runId,
-          language: payload.language,
-          toolIndex: payload.toolIndex,
-          subtoolIndex: payload.subtoolIndex ?? null,
-          toolLabel: toolConfig.outputLabel,
-          inputName: input.sourceBaseName,
-          inputPath: input.sourcePath,
-          outputFolderName,
-          outputDir: hostOutputDir,
-          outputFiles,
-          exitCode: code,
-          durationMs: runDurationMs,
-          success: code === 0,
-          startedAt: new Date(startedAt).toISOString(),
-          finishedAt: new Date().toISOString()
-        }, null, 2), 'utf8');
+        // await fsp.writeFile(path.join(hostOutputDir, 'run-summary.json'), JSON.stringify({
+        //   runId,
+        //   language: payload.language,
+        //   toolIndex: payload.toolIndex,
+        //   subtoolIndex: payload.subtoolIndex ?? null,
+        //   toolLabel: toolConfig.outputLabel,
+        //   inputName: input.sourceBaseName,
+        //   inputPath: input.sourcePath,
+        //   outputFolderName,
+        //   outputDir: hostOutputDir,
+        //   outputFiles,
+        //   exitCode: code,
+        //   durationMs: runDurationMs,
+        //   success: code === 0,
+        //   startedAt: new Date(startedAt).toISOString(),
+        //   finishedAt: new Date().toISOString()
+        // }, null, 2), 'utf8');
 
         if (code === 0) {
           notifyStatus(`Completed ${toolConfig.outputLabel}. Output saved to Downloads/Trustinn/${outputFolderName}`);

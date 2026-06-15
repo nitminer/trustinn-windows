@@ -1,4 +1,4 @@
-public class ConditionDemo {
+public class sample4 {
     public static void main(String[] args) {
         int x = 10;
         int y = 5;
