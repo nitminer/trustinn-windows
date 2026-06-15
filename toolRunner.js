@@ -456,6 +456,9 @@ else
   echo "---------- target is a folder ----------"
 fi
 
+if [ -f main-gProfiler.sh ]; then
+  sed -i 's/((score = (\${feasible} \\* 100) \\/ \${total_seq}))/if [ "\${total_seq}" -eq 0 ]; then score=0; else ((score = (\${feasible} * 100) \\/ \${total_seq})); fi/g' main-gProfiler.sh
+fi
 
 ${command}
 
