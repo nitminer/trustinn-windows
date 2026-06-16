@@ -33,6 +33,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   pickInputFolder: () => ipcRenderer.invoke('tool:pick-folder'),
   validateTool: (payload) => ipcRenderer.invoke('tool:validate', payload),
   runTool: (payload) => ipcRenderer.invoke('tool:run', payload),
+  compileTool: (payload) => ipcRenderer.invoke('tool:compile', payload),
   stopTool: () => ipcRenderer.invoke('tool:stop'),
   openOutputFolder: (folderPath) => ipcRenderer.invoke('tool:open-output-folder', folderPath),
   copyText: (text) => ipcRenderer.invoke('tool:copy-text', text),

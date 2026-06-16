@@ -139,6 +139,8 @@ function getSimulatedPrompt(payload) {
 }
 
 function filterLine(line, filterLang, filterTool, filterSub) {
+  if (filterTool === 'compile') return true;
+
   const commonErrors = [
     /\berror\b/i,
     /\bwarning\b/i,
@@ -1621,17 +1623,70 @@ async function doCompile() {
     return;
   }
 
+  if (isRunning) {
+    appendLine('A Docker run is already in progress.', 'var(--orange)');
+    return;
+  }
+
+  resetRunOutput();
+  isRunning = true;
+  latestRunResult = null;
+  activeRunLang = payload.language;
+  activeRunTool = 'compile';
+  activeRunSub = payload.subtoolIndex;
+  setStatus('Starting Docker compilation...');
+
+  ofStatusEl.innerHTML = '<span class="exec-spinner"></span> Compiling...';
+  ofStatusEl.style.color = 'var(--ink-2)';
+
+  const compileBtn = document.querySelector('.ab-compile');
+  if (compileBtn) {
+    compileBtn.innerHTML = '<span class="exec-spinner" style="border-color: rgba(255,255,255,0.3); border-top-color: #fff;"></span> Compiling...';
+    compileBtn.style.pointerEvents = 'none';
+  }
+
   try {
-    const result = await window.electronAPI.validateTool(payload);
-    latestOutputDir = result.outputDir;
-    appendLine(`✓ Docker ready for ${result.toolLabel}`, 'var(--green)');
-    appendLine(`✓ Target output folder: ${result.outputDir}`, 'var(--green)');
-    setStatus(`Ready to run ${result.toolLabel}`);
-    ofStatusEl.textContent = 'Ready';
+    const result = normalizeRunResult(await window.electronAPI.compileTool(payload));
+    latestRunResult = {
+      ...result,
+      language: payload.language,
+      toolIndex: payload.toolIndex,
+      subtoolIndex: payload.subtoolIndex,
+      inputName: payload.inputName,
+      params: payload.params
+    };
+    latestOutputDir = result ? result.outputDir : null;
+    runs += 1;
+    log.unshift({
+      ts: new Date().toLocaleTimeString(),
+      tn: 'Compile',
+      ok: true,
+      durationMs: result && typeof result.durationMs === 'number' ? result.durationMs : null,
+      outputDir: result ? result.outputDir || null : null
+    });
+    appendLine('✓ Compilation and Run completed.', 'var(--green)');
+    ofStatusEl.textContent = 'Complete';
+    ofStatusEl.style.color = '';
+    setStatus('Completed Compilation');
   } catch (error) {
-    appendLine(error.message || 'Validation failed.', 'var(--orange)');
-    setStatus(`❌ ${error.message || 'Validation failed'}`);
-    ofStatusEl.textContent = 'Validation failed';
+    log.unshift({
+      ts: new Date().toLocaleTimeString(),
+      tn: 'Compile',
+      ok: false,
+      durationMs: typeof error.durationMs === 'number' ? error.durationMs : null,
+      outputDir: error && error.outputDir ? error.outputDir : null
+    });
+    appendLine(error.message || 'Docker compilation failed.', 'var(--orange)');
+    ofStatusEl.textContent = 'Failed';
+    ofStatusEl.style.color = 'var(--orange)';
+  } finally {
+    isRunning = false;
+    updateAnalyticsModal();
+    
+    if (compileBtn) {
+      compileBtn.innerHTML = 'Compile';
+      compileBtn.style.pointerEvents = 'auto';
+    }
   }
 }
 

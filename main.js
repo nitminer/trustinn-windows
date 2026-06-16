@@ -2,7 +2,7 @@ const { app, BrowserWindow, clipboard, dialog, ipcMain, shell } = require('elect
 const { autoUpdater } = require('electron-updater');
 const fs = require('fs');
 const path = require('path');
-const { runDockerTool, stopActiveRun, validateTool } = require('./toolRunner');
+const { runDockerTool, stopActiveRun, validateTool, compileDockerTool } = require('./toolRunner');
 
 let mainWindow;
 let updateTimer = null;
@@ -165,6 +165,26 @@ ipcMain.handle('tool:run', async (_event, payload) => {
   sendToWindow('update-status', 'Starting Trustinn Docker workflow...');
   try {
     const result = await runDockerTool(payload, {
+      onStatus: (message) => sendToWindow('update-status', message),
+      onOutput: (message) => sendToWindow('tool-output', message)
+    });
+    sendToWindow('tool-complete', result);
+    return result;
+  } catch (error) {
+    sendToWindow('tool-error', {
+      message: error.message,
+      exitCode: error.exitCode || 1,
+      outputDir: error.outputDir || null,
+      outputFiles: error.outputFiles || []
+    });
+    throw error;
+  }
+});
+
+ipcMain.handle('tool:compile', async (_event, payload) => {
+  sendToWindow('update-status', 'Starting Trustinn Docker compile...');
+  try {
+    const result = await compileDockerTool(payload, {
       onStatus: (message) => sendToWindow('update-status', message),
       onOutput: (message) => sendToWindow('tool-output', message)
     });

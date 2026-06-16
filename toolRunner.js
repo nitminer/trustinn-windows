@@ -655,6 +655,131 @@ function stopActiveRun() {
   }
 }
 
+async function compileDockerTool(payload, hooks = {}) {
+  const runId = createRunId();
+  const notifyStatus = typeof hooks.onStatus === 'function' ? hooks.onStatus : () => {};
+  const notifyOutput = typeof hooks.onOutput === 'function' ? hooks.onOutput : () => {};
+  const input = await prepareHostInput(payload, runId);
+  const outputFolderName = `compile-${slugify(input.sourceBaseName)}`;
+  const hostOutputRoot = path.join(os.homedir(), 'Downloads', 'Trustinn');
+  const hostOutputDir = path.join(hostOutputRoot, outputFolderName);
+  await fsp.mkdir(hostOutputDir, { recursive: true });
+
+  await ensureDockerReady(notifyStatus);
+  await ensureImagePulled(notifyStatus);
+
+  notifyStatus(`Compiling ${input.sourceBaseName}...`);
+
+  const escapedInputName = shellEscape(input.sourceBaseName);
+  let compileCommand = '';
+
+  if (payload.language === 'c') {
+    const outName = 'compiled_out';
+    compileCommand = `gcc ${escapedInputName} -o ${outName} && ./${outName}`;
+  } else if (payload.language === 'java') {
+    const className = stripExtension(input.sourceBaseName);
+    compileCommand = `javac ${escapedInputName} && java ${shellEscape(className)}`;
+  } else if (payload.language === 'python') {
+    compileCommand = `python3 ${escapedInputName}`;
+  } else if (payload.language === 'solidity') {
+    compileCommand = `solc --version && solc --bin ${escapedInputName}`;
+  } else {
+    throw new Error('Unsupported language for compilation: ' + payload.language);
+  }
+
+  const script = `set -e
+cd ${shellEscape(CONTAINER_WORKSPACE)}
+cp -R ${shellEscape(`${HOST_INPUT_DIR}/${input.sourceBaseName}`)} ./
+${compileCommand}
+`;
+
+  const dockerArgs = [
+    'run',
+    '--platform', TRUSTINN_PLATFORM,
+    '--name', `trustinn-${runId}`,
+    '--rm',
+    '-v', `${input.tempRoot}:${HOST_INPUT_DIR}`,
+    '-v', `${hostOutputRoot}:${HOST_OUTPUT_DIR}`,
+    TRUSTINN_IMAGE,
+    'bash',
+    '-lc',
+    script
+  ];
+
+  let stdout = '';
+  let stderr = '';
+  const startedAt = Date.now();
+
+  await new Promise((resolve, reject) => {
+    const child = spawn('docker', dockerArgs, { shell: false });
+    activeDockerChild = child;
+    activeDockerRunId = runId;
+    let settled = false;
+
+    const finish = (err, result) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      activeDockerChild = null;
+      activeDockerRunId = null;
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    };
+
+    child.stdout?.on('data', (chunk) => {
+      const text = chunk.toString();
+      stdout += text;
+      notifyOutput(text);
+    });
+
+    child.stderr?.on('data', (chunk) => {
+      const text = chunk.toString();
+      stderr += text;
+      notifyOutput(text);
+    });
+
+    child.on('error', (err) => {
+      finish(err);
+    });
+
+    child.on('close', async (code) => {
+      try {
+        const runDurationMs = Date.now() - startedAt;
+        const outputFiles = collectFiles(hostOutputDir);
+
+        if (code === 0) {
+          notifyStatus(`Compilation completed.`);
+          finish(null, {
+            runId,
+            toolLabel: 'Compile',
+            outputFolderName,
+            outputDir: hostOutputDir,
+            outputFiles,
+            exitCode: code,
+            durationMs: runDurationMs,
+            stdout,
+            stderr
+          });
+        } else {
+          const error = new Error(stderr.trim() || stdout.trim() || `Docker run failed with exit code ${code}`);
+          error.exitCode = code;
+          error.outputDir = hostOutputDir;
+          error.outputFiles = outputFiles;
+          finish(error);
+        }
+      } catch (err) {
+        finish(err);
+      }
+    });
+  }).finally(async () => {
+    await cleanupDir(input.tempRoot);
+  });
+}
+
 module.exports = {
   TRUSTINN_IMAGE,
   collectFiles,
@@ -665,5 +790,6 @@ module.exports = {
   stopActiveRun,
   validateTool,
   slugify,
-  stripExtension
+  stripExtension,
+  compileDockerTool
 };
