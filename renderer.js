@@ -101,7 +101,7 @@ function getSimulatedPrompt(payload) {
   const toolConfig = TOOLS[payload.language][payload.toolIndex];
   let toolDir = '';
   let scriptCall = '';
-  
+
   if (payload.language === 'c') {
     if (payload.toolIndex === 0) {
       toolDir = 'CC-BOUNDED MODEL CHECKER';
@@ -134,7 +134,7 @@ function getSimulatedPrompt(payload) {
     const mode = payload.subtoolIndex === 1 ? 'chc' : 'bmc';
     scriptCall = `./latest.sh ${payload.inputName} ${mode}`;
   }
-  
+
   return `user@NITMINER:/mnt/d/TRUSTINN/${toolDir}$ ${scriptCall}`;
 }
 
@@ -349,12 +349,12 @@ function filterText(rawText, lang, toolIndex, subtoolIndex) {
   if (!rawText) return '';
   const lines = rawText.split(/\r?\n/);
   const filtered = [];
-  
+
   lines.forEach((line) => {
     if (/^TRUSTINN_HOME:\s*/.test(line) ||
-        /^TRACERX_PATH:\s*/.test(line) ||
-        /^LD_LIBRARY_PATH:\s*/.test(line) ||
-        /^PATH updated successfully for Docker environment$/.test(line)) {
+      /^TRACERX_PATH:\s*/.test(line) ||
+      /^LD_LIBRARY_PATH:\s*/.test(line) ||
+      /^PATH updated successfully for Docker environment$/.test(line)) {
       return;
     }
     if (filterLine(line, lang, toolIndex, subtoolIndex)) {
@@ -379,9 +379,9 @@ function appendChunk(chunk, color) {
   const lines = String(chunk).split(/\r?\n/);
   lines.forEach((line) => {
     if (/^TRUSTINN_HOME:\s*/.test(line) ||
-        /^TRACERX_PATH:\s*/.test(line) ||
-        /^LD_LIBRARY_PATH:\s*/.test(line) ||
-        /^PATH updated successfully for Docker environment$/.test(line)) {
+      /^TRACERX_PATH:\s*/.test(line) ||
+      /^LD_LIBRARY_PATH:\s*/.test(line) ||
+      /^PATH updated successfully for Docker environment$/.test(line)) {
       return;
     }
 
@@ -404,7 +404,7 @@ function getCombinedOutputText() {
     const runLang = latestRunResult.language || activeRunLang || lang;
     const runTool = latestRunResult.toolIndex !== undefined ? latestRunResult.toolIndex : (activeRunTool !== null ? activeRunTool : tool);
     const runSub = latestRunResult.subtoolIndex !== undefined ? latestRunResult.subtoolIndex : (activeRunSub !== null ? activeRunSub : sub);
-    
+
     let cleanStdout = '';
     if (typeof latestRunResult.stdout === 'string') {
       cleanStdout = filterText(latestRunResult.stdout, runLang, runTool, runSub);
@@ -413,10 +413,10 @@ function getCombinedOutputText() {
     if (typeof latestRunResult.stderr === 'string') {
       cleanStderr = filterText(latestRunResult.stderr, runLang, runTool, runSub);
     }
-    
+
     if (cleanStdout) parts.push(cleanStdout);
     if (cleanStderr) parts.push(cleanStderr);
-    
+
     if (!cleanStdout && !cleanStderr && outputBuffer.length) {
       parts.push(outputBuffer.join('\n'));
     }
@@ -434,7 +434,7 @@ function getLastMatchValue(text, regex) {
 
 function buildAnalyticsInsights(text, runLang, runTool, runSub) {
   // console.log(text, runLang, runSub, runTool);
-  
+
   const metricPatterns = [
     { label: 'Properties inserted', regex: /Properties inserted\s*:\s*([0-9]+)/gi },
     { label: 'Properties violation detected (dynamic)', regex: /Properties violation detected \(dynamic\)\s*:\s*([0-9]+)/gi },
@@ -452,7 +452,7 @@ function buildAnalyticsInsights(text, runLang, runTool, runSub) {
     { label: 'Total number of Dead Mutants', regex: /Total number of Dead Mutants\s*=:\s*([0-9]+)/gi },
     { label: 'Total number of Total Mutants', regex: /Total number of Total Mutants\s*=:\s*([0-9]+)/gi },
     { label: 'Mutation Score (Killed/Reached)', regex: /Mutation Score[^\n]*=:\s*([0-9.]+%?)/gi },
-    
+
     { label: 'Path', regex: /\|\s*([^\s|]+\/klee-out-\d+)\s*\|/gi },
     { label: 'Instructions', regex: /\|\s*[^\s|]+\/klee-out-\d+\s*\|\s*([0-9]+)\s*\|/gi },
     { label: 'Time (sec)', regex: /\|\s*[^\s|]+\/klee-out-\d+\s*\|\s*[0-9]+\s*\|\s*([0-9.]+)\s*\|/gi },
@@ -460,18 +460,18 @@ function buildAnalyticsInsights(text, runLang, runTool, runSub) {
     { label: 'BCov %', regex: /\|\s*[^\s|]+\/klee-out-\d+\s*\|\s*[0-9]+\s*\|\s*[0-9.]+\s*\|\s*[0-9.]+\s*\|\s*([0-9.]+\s*%?)\s*\|/gi },
     { label: 'ICount', regex: /\|\s*[^\s|]+\/klee-out-\d+\s*\|\s*[0-9]+\s*\|\s*[0-9.]+\s*\|\s*[0-9.]+\s*\|\s*[0-9.]+\s*\|\s*([0-9]+)\s*\|/gi },
     { label: 'TSolver %', regex: /\|\s*[^\s|]+\/klee-out-\d+\s*\|\s*[0-9]+\s*\|\s*[0-9.]+\s*\|\s*[0-9.]+\s*\|\s*[0-9.]+\s*\|\s*[0-9]+\s*\|\s*([0-9.]+%?)\s*\|/gi },
-    
+
     { label: 'Feasible MC/DC sequences', regex: /Total no\.\ of feasible MC\/DC sequences\s*=\s*([0-9]+)/gi },
     { label: 'Total MC/DC sequences', regex: /Total no\.\ of MC\/DC sequences\s*=\s*([0-9]+)/gi },
     { label: 'MC/DC Score', regex: /MC\/DC Score\s*=\s*([0-9.]+)/gi },
     { label: 'Feasible SC-MCC sequences', regex: /Total no\.\ of feasible SC-MCC sequences\s*=\s*([0-9]+)/gi },
     { label: 'Total SC-MCC sequences', regex: /Total no\.\ of SC-MCC sequences\s*=\s*([0-9]+)/gi },
     { label: 'SC-MCC Score', regex: /SC-MCC Score\s*=\s*([0-9.]+)/gi },
-    
+
     { label: 'Killed Mutants', regex: /Total no\.\ of Killed Mutants\s*=\s*([0-9]+)/gi },
     { label: 'Total Mutants', regex: /Total no\.\ of Mutants\s*=\s*([0-9]+)/gi },
     { label: 'Mutation Score', regex: /Mutation Score\s*=\s*([0-9.]+)/gi },
-    
+
     { label: 'Assertion Failures', regex: /Total Assertion Failure:\s*([0-9]+)/gi },
     { label: 'Assertions Added', regex: /Total Assertion Added:\s*([0-9]+)/gi },
     { label: 'Failed Assertion', regex: /Failed Assertion:\s*([0-9]+)/gi },
@@ -479,7 +479,7 @@ function buildAnalyticsInsights(text, runLang, runTool, runSub) {
     { label: 'Passed Assertions', regex: /Passed Assertions\s*:\s*([0-9]+)/gi },
     { label: 'Total Assertion', regex: /Total Assertion\s*:\s*([0-9]+)/gi },
     { label: 'Conditional Coverage %', regex: /Conditional Coverage:\s*([0-9.]+%?)/gi },
-    
+
     { label: 'Project total Assert count', regex: /total Assert count:\s*([0-9]+)/gi },
     { label: 'Project total violation (dynamic)', regex: /total Properties violation detected \(dynamic\):\s*([0-9]+)/gi },
     { label: 'Project total violation (unique)', regex: /total violation detected \(unique\):\s*([0-9]+)/gi },
@@ -562,7 +562,7 @@ function renderAnalyticsInsights() {
   const runLang = (latestRunResult && latestRunResult.language) || activeRunLang || lang;
   const runTool = latestRunResult && latestRunResult.toolIndex !== undefined ? latestRunResult.toolIndex : (activeRunTool !== null ? activeRunTool : tool);
   const runSub = latestRunResult && latestRunResult.subtoolIndex !== undefined ? latestRunResult.subtoolIndex : (activeRunSub !== null ? activeRunSub : sub);
-  
+
   const parsed = buildAnalyticsInsights(text, runLang, runTool, runSub);
   analyticsHealthEl.innerHTML = [
     parsed.isSolidityReport ? '<div class="m-chip">Solidity report</div>' : '<div class="m-chip">General report</div>',
@@ -573,7 +573,7 @@ function renderAnalyticsInsights() {
   analyticsInsightsEl.innerHTML = parsed.metrics.length
     ? parsed.metrics.map((metric) => `<div class="m-insight-item"><div class="m-insight-k">${metric.label}</div><div class="m-insight-v">${metric.value}</div></div>`).join('')
     : '<div class="m-insight-item"><div class="m-insight-k">Status</div><div class="m-insight-v">No recognizable metrics found in this output.</div></div>';
-    
+
   renderCharts(runLang, parsed.metrics, runTool);
 }
 
@@ -583,32 +583,32 @@ function renderCharts(runLang, metrics, runTool) {
   // console.log('runLang=', runLang);
   const javaChartsContainer = document.getElementById('m-charts-container');
   const pythonChartsContainer = document.getElementById('python-charts-container');
-  
+
   if (javaChartsContainer) javaChartsContainer.style.display = 'none';
   if (pythonChartsContainer) pythonChartsContainer.style.display = 'none';
 
   if (runLang === 'java') {
     if (!javaChartsContainer) return;
-    
+
     // Clean up existing charts
     if (javaAssertionsChartInstance) javaAssertionsChartInstance.destroy();
     if (javaCoverageChartInstance) javaCoverageChartInstance.destroy();
-    
+
     let failures = 0;
     let added = 0;
     let coverage = 0;
-    
+
     metrics.forEach(m => {
       if (m.label === 'Assertion Failures') failures = parseInt(m.value) || 0;
       if (m.label === 'Assertions Added') added = parseInt(m.value) || 0;
       if (m.label === 'Conditional Coverage %') coverage = parseFloat(m.value.replace('%', '')) || 0;
     });
-    
+
     const passed = Math.max(0, added - failures);
-    
+
     if (added > 0 || failures > 0 || coverage > 0) {
       javaChartsContainer.style.display = 'grid';
-      
+
       const ctxAssert = document.getElementById('javaAssertionsChart').getContext('2d');
       javaAssertionsChartInstance = new Chart(ctxAssert, {
         type: 'bar',
@@ -662,24 +662,24 @@ function renderCharts(runLang, metrics, runTool) {
     }
   } else if (runLang === 'python') {
     if (!pythonChartsContainer) return;
-    
+
     // Clean up existing charts
     if (pythonAssertionsChartInstance) pythonAssertionsChartInstance.destroy();
     if (pythonCoverageChartInstance) pythonCoverageChartInstance.destroy();
-    
+
     let failures = 0;
     let passed = 0;
     let coverage = 0;
-    
+
     metrics.forEach(m => {
       if (m.label === 'Failed Assertion') failures = parseInt(m.value) || 0;
       if (m.label === 'Passed Assertions') passed = parseInt(m.value) || 0;
       if (m.label === 'Conditional Coverage %') coverage = parseFloat(m.value.replace('%', '')) || 0;
     });
-    
+
     if (passed > 0 || failures > 0 || coverage > 0) {
       pythonChartsContainer.style.display = 'grid';
-      
+
       const ctxAssert = document.getElementById('pythonAssertionsChart').getContext('2d');
       pythonAssertionsChartInstance = new Chart(ctxAssert, {
         type: 'bar',
@@ -733,34 +733,174 @@ function renderCharts(runLang, metrics, runTool) {
     }
   } else if (runLang === 'c' && runTool === 0) {
 
-  if (!javaChartsContainer) return;
+    if (!javaChartsContainer) return;
 
-  if (javaAssertionsChartInstance) javaAssertionsChartInstance.destroy();
-  if (javaCoverageChartInstance) javaCoverageChartInstance.destroy();
+    if (javaAssertionsChartInstance) javaAssertionsChartInstance.destroy();
+    if (javaCoverageChartInstance) javaCoverageChartInstance.destroy();
 
-  let reachable = 0;
-  let unreachable = 0;
-  let totalTime = 0;
+    let reachable = 0;
+    let unreachable = 0;
+    let totalTime = 0;
 
-  metrics.forEach(m => {
-    if (m.label === 'Total number of Reachable paths or valid test cases') {
-      reachable = parseInt(m.value) || 0;
+    metrics.forEach(m => {
+      if (m.label === 'Total number of Reachable paths or valid test cases') {
+        reachable = parseInt(m.value) || 0;
+      }
+
+      if (m.label === 'Total number of Unreachable paths or invalid test cases') {
+        unreachable = parseInt(m.value) || 0;
+      }
+
+      if (m.label === 'Total time required (sec)') {
+        totalTime = parseFloat(m.value) || 0;
+      }
+    });
+
+    if (reachable > 0 || unreachable > 0) {
+
+      javaChartsContainer.style.display = 'grid';
+
+      // Chart 1 - Reachable vs Unreachable
+      const ctxAssert = document
+        .getElementById('javaAssertionsChart')
+        .getContext('2d');
+
+      javaAssertionsChartInstance = new Chart(ctxAssert, {
+        type: 'bar',
+        data: {
+          labels: ['Reachable', 'Unreachable'],
+          datasets: [{
+            label: 'Test Cases',
+            data: [reachable, unreachable],
+            backgroundColor: [
+              'rgba(16,185,129,0.7)',
+              'rgba(249,115,22,0.7)'
+            ],
+            borderColor: [
+              'rgba(16,185,129,1)',
+              'rgba(249,115,22,1)'
+            ],
+            borderWidth: 1,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              text: 'Reachable vs Unreachable Paths',
+              font: { family: 'Space Mono', size: 10 }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+                font: { family: 'Space Mono', size: 9 }
+              }
+            },
+            x: {
+              ticks: {
+                font: { family: 'Space Mono', size: 9 }
+              }
+            }
+          }
+        }
+      });
+
+      // Chart 2 - Reachability Distribution
+      const total = reachable + unreachable;
+
+      const ctxCov = document
+        .getElementById('javaCoverageChart')
+        .getContext('2d');
+
+      javaCoverageChartInstance = new Chart(ctxCov, {
+        type: 'doughnut',
+        data: {
+          labels: ['Reachable', 'Unreachable'],
+          datasets: [{
+            data: [reachable, unreachable],
+            backgroundColor: [
+              'rgba(16,185,129,0.7)',
+              'rgba(249,115,22,0.7)'
+            ],
+            borderColor: [
+              'rgba(16,185,129,1)',
+              'rgba(249,115,22,1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                font: {
+                  family: 'Space Mono',
+                  size: 9
+                },
+                boxWidth: 10
+              }
+            },
+            title: {
+              display: true,
+              text: `Distribution (${total} Total, ${totalTime}s)`,
+              font: {
+                family: 'Space Mono',
+                size: 10
+              }
+            }
+          }
+        }
+      });
     }
+  } else if (runLang === 'c' && runTool === 1) {
 
-    if (m.label === 'Total number of Unreachable paths or invalid test cases') {
-      unreachable = parseInt(m.value) || 0;
-    }
+    if (!javaChartsContainer) return;
 
-    if (m.label === 'Total time required (sec)') {
-      totalTime = parseFloat(m.value) || 0;
-    }
-  });
+    if (javaAssertionsChartInstance) javaAssertionsChartInstance.destroy();
+    if (javaCoverageChartInstance) javaCoverageChartInstance.destroy();
 
-  if (reachable > 0 || unreachable > 0) {
+    let alive = 0;
+    let killed = 0;
+    let reached = 0;
+    let dead = 0;
+    let mutationScore = 0;
+    let totalMutants = 0;
+
+    metrics.forEach(m => {
+
+      if (m.label === 'Total number of Alive Mutants')
+        alive = parseInt(m.value) || 0;
+
+      if (m.label === 'Total number of Killed Mutants')
+        killed = parseInt(m.value) || 0;
+
+      if (m.label === 'Total number of Reached Mutants')
+        reached = parseInt(m.value) || 0;
+
+      if (m.label === 'Total number of Dead Mutants')
+        dead = parseInt(m.value) || 0;
+
+      if (m.label === 'Total number of Total Mutants')
+        totalMutants = parseInt(m.value) || 0
+
+      if (m.label === 'Mutation Score (Killed/Reached)')
+        mutationScore = parseFloat(m.value.replace('%', '')) || 0;
+    });
 
     javaChartsContainer.style.display = 'grid';
 
-    // Chart 1 - Reachable vs Unreachable
+    // Chart 1
     const ctxAssert = document
       .getElementById('javaAssertionsChart')
       .getContext('2d');
@@ -768,17 +908,16 @@ function renderCharts(runLang, metrics, runTool) {
     javaAssertionsChartInstance = new Chart(ctxAssert, {
       type: 'bar',
       data: {
-        labels: ['Reachable', 'Unreachable'],
+        labels: ['Alive', 'Killed', 'Reached', 'Total', 'Dead'],
         datasets: [{
-          label: 'Test Cases',
-          data: [reachable, unreachable],
+          label: 'Mutants',
+          data: [alive, killed, reached, totalMutants, dead],
           backgroundColor: [
+            'rgba(249,115,22,0.7)',
             'rgba(16,185,129,0.7)',
-            'rgba(249,115,22,0.7)'
-          ],
-          borderColor: [
-            'rgba(16,185,129,1)',
-            'rgba(249,115,22,1)'
+            'rgba(59,130,246,0.7)',
+            'rgba(157, 178, 51, 0.7)',
+            'rgba(107,114,128,0.7)'
           ],
           borderWidth: 1,
           borderRadius: 6
@@ -791,30 +930,14 @@ function renderCharts(runLang, metrics, runTool) {
           legend: { display: false },
           title: {
             display: true,
-            text: 'Reachable vs Unreachable Paths',
+            text: 'Mutation Statistics',
             font: { family: 'Space Mono', size: 10 }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1,
-              font: { family: 'Space Mono', size: 9 }
-            }
-          },
-          x: {
-            ticks: {
-              font: { family: 'Space Mono', size: 9 }
-            }
           }
         }
       }
     });
 
-    // Chart 2 - Reachability Distribution
-    const total = reachable + unreachable;
-
+    // Chart 2
     const ctxCov = document
       .getElementById('javaCoverageChart')
       .getContext('2d');
@@ -822,16 +945,15 @@ function renderCharts(runLang, metrics, runTool) {
     javaCoverageChartInstance = new Chart(ctxCov, {
       type: 'doughnut',
       data: {
-        labels: ['Reachable', 'Unreachable'],
+        labels: ['Mutation Score', 'Remaining'],
         datasets: [{
-          data: [reachable, unreachable],
-          backgroundColor: [
-            'rgba(16,185,129,0.7)',
-            'rgba(249,115,22,0.7)'
+          data: [
+            mutationScore,
+            Math.max(0, 100 - mutationScore)
           ],
-          borderColor: [
-            'rgba(16,185,129,1)',
-            'rgba(249,115,22,1)'
+          backgroundColor: [
+            'rgba(124,58,237,0.7)',
+            'rgba(203,213,225,0.5)'
           ],
           borderWidth: 1
         }]
@@ -842,18 +964,222 @@ function renderCharts(runLang, metrics, runTool) {
         cutout: '65%',
         plugins: {
           legend: {
-            position: 'bottom',
-            labels: {
-              font: {
-                family: 'Space Mono',
-                size: 9
-              },
-              boxWidth: 10
-            }
+            position: 'bottom'
           },
           title: {
             display: true,
-            text: `Distribution (${total} Total, ${totalTime}s)`,
+            text: `Mutation Score (${mutationScore}%)`,
+            font: { family: 'Space Mono', size: 10 }
+          }
+        }
+      }
+    });
+  } else if (runLang === 'c' && (runTool === 2 || runTool === 3)) {
+
+    if (!javaChartsContainer) return;
+
+    if (javaAssertionsChartInstance) javaAssertionsChartInstance.destroy();
+    if (javaCoverageChartInstance) javaCoverageChartInstance.destroy();
+
+    let instructions = 0;
+    let icount = 0;
+    let icov = 0;
+    let bcov = 0;
+    let tsolver = 0;
+
+    metrics.forEach(m => {
+
+      if (m.label === 'Instructions')
+        instructions = parseInt(m.value) || 0;
+
+      if (m.label === 'ICount')
+        icount = parseInt(m.value) || 0;
+
+      if (m.label === 'ICov %')
+        icov = parseFloat(m.value) || 0;
+
+      if (m.label === 'BCov %')
+        bcov = parseFloat(m.value) || 0;
+
+      if (m.label === 'TSolver %')
+        tsolver = parseFloat(m.value) || 0;
+    });
+
+    javaChartsContainer.style.display = 'grid';
+
+    // BAR CHART
+    const ctxAssert = document
+      .getElementById('javaAssertionsChart')
+      .getContext('2d');
+
+    javaAssertionsChartInstance = new Chart(ctxAssert, {
+      type: 'bar',
+      data: {
+        labels: ['Instructions', 'ICount'],
+        datasets: [{
+          label: 'Execution Metrics',
+          data: [instructions, icount],
+          backgroundColor: [
+            'rgba(59,130,246,0.7)',
+            'rgba(16,185,129,0.7)'
+          ],
+          borderWidth: 1,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          title: {
+            display: true,
+            text: 'Execution Metrics',
+            font: { family: 'Space Mono', size: 10 }
+          }
+        }
+      }
+    });
+
+    // DOUGHNUT CHART
+    const ctxCov = document
+      .getElementById('javaCoverageChart')
+      .getContext('2d');
+
+    javaCoverageChartInstance = new Chart(ctxCov, {
+      type: 'doughnut',
+      data: {
+        labels: ['ICov %', 'BCov %'],
+        datasets: [{
+          data: [icov, bcov],
+          backgroundColor: [
+            'rgba(124,58,237,0.7)',
+            'rgba(249,115,22,0.7)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+          legend: {
+            position: 'bottom'
+          },
+          title: {
+            display: true,
+            text: `Coverage (TSolver ${tsolver}%)`,
+            font: {
+              family: 'Space Mono',
+              size: 10
+            }
+          }
+        }
+      }
+    });
+  } else if (runLang === 'c' && runTool === 5) {
+
+    if (!javaChartsContainer) return;
+
+    if (javaAssertionsChartInstance)
+      javaAssertionsChartInstance.destroy();
+
+    if (javaCoverageChartInstance)
+      javaCoverageChartInstance.destroy();
+
+    let killed = 0;
+    let total = 0;
+    let score = 0;
+
+    metrics.forEach(m => {
+
+      if (m.label === 'Killed Mutants')
+        killed = parseInt(m.value) || 0;
+
+      if (m.label === 'Total Mutants')
+        total = parseInt(m.value) || 0;
+
+      if (m.label === 'Mutation Score')
+        score = parseFloat(m.value) || 0;
+
+    });
+
+    const survived = Math.max(0, total - killed);
+
+    javaChartsContainer.style.display = 'grid';
+
+    // BAR CHART
+
+    const ctxAssert = document
+      .getElementById('javaAssertionsChart')
+      .getContext('2d');
+
+    javaAssertionsChartInstance = new Chart(ctxAssert, {
+      type: 'bar',
+      data: {
+        labels: ['Killed', 'Survived'],
+        datasets: [{
+          label: 'Mutants',
+          data: [killed, survived],
+          backgroundColor: [
+            'rgba(16,185,129,0.7)',
+            'rgba(239,68,68,0.7)'
+          ],
+          borderWidth: 1,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          title: {
+            display: true,
+            text: 'Mutation Statistics',
+            font: {
+              family: 'Space Mono',
+              size: 10
+            }
+          }
+        }
+      }
+    });
+
+    // DOUGHNUT CHART
+
+    const ctxCov = document
+      .getElementById('javaCoverageChart')
+      .getContext('2d');
+
+    javaCoverageChartInstance = new Chart(ctxCov, {
+      type: 'doughnut',
+      data: {
+        labels: ['Mutation Score', 'Remaining'],
+        datasets: [{
+          data: [
+            score,
+            Math.max(0, 100 - score)
+          ],
+          backgroundColor: [
+            'rgba(124,58,237,0.7)',
+            'rgba(203,213,225,0.5)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+          legend: {
+            position: 'bottom'
+          },
+          title: {
+            display: true,
+            text: `Mutation Score (${score}%)`,
             font: {
               family: 'Space Mono',
               size: 10
@@ -863,332 +1189,6 @@ function renderCharts(runLang, metrics, runTool) {
       }
     });
   }
-  } else if (runLang === 'c' && runTool === 1) {
-
-  if (!javaChartsContainer) return;
-
-  if (javaAssertionsChartInstance) javaAssertionsChartInstance.destroy();
-  if (javaCoverageChartInstance) javaCoverageChartInstance.destroy();
-
-  let alive = 0;
-  let killed = 0;
-  let reached = 0;
-  let dead = 0;
-  let mutationScore = 0;
-  let totalMutants = 0;
-
-  metrics.forEach(m => {
-
-    if (m.label === 'Total number of Alive Mutants')
-      alive = parseInt(m.value) || 0;
-
-    if (m.label === 'Total number of Killed Mutants')
-      killed = parseInt(m.value) || 0;
-
-    if (m.label === 'Total number of Reached Mutants')
-      reached = parseInt(m.value) || 0;
-
-    if (m.label === 'Total number of Dead Mutants')
-      dead = parseInt(m.value) || 0;
-
-    if (m.label === 'Total number of Total Mutants')
-      totalMutants = parseInt(m.value) || 0
-
-    if (m.label === 'Mutation Score (Killed/Reached)')
-      mutationScore = parseFloat(m.value.replace('%', '')) || 0;
-  });
-
-  javaChartsContainer.style.display = 'grid';
-
-  // Chart 1
-  const ctxAssert = document
-    .getElementById('javaAssertionsChart')
-    .getContext('2d');
-
-  javaAssertionsChartInstance = new Chart(ctxAssert, {
-    type: 'bar',
-    data: {
-      labels: ['Alive', 'Killed', 'Reached', 'Total', 'Dead'],
-      datasets: [{
-        label: 'Mutants',
-        data: [alive, killed, reached, totalMutants, dead ],
-        backgroundColor: [
-          'rgba(249,115,22,0.7)',
-          'rgba(16,185,129,0.7)',
-          'rgba(59,130,246,0.7)',
-          'rgba(157, 178, 51, 0.7)',
-          'rgba(107,114,128,0.7)'
-        ],
-        borderWidth: 1,
-        borderRadius: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        title: {
-          display: true,
-          text: 'Mutation Statistics',
-          font: { family: 'Space Mono', size: 10 }
-        }
-      }
-    }
-  });
-
-  // Chart 2
-  const ctxCov = document
-    .getElementById('javaCoverageChart')
-    .getContext('2d');
-
-  javaCoverageChartInstance = new Chart(ctxCov, {
-    type: 'doughnut',
-    data: {
-      labels: ['Mutation Score', 'Remaining'],
-      datasets: [{
-        data: [
-          mutationScore,
-          Math.max(0, 100 - mutationScore)
-        ],
-        backgroundColor: [
-          'rgba(124,58,237,0.7)',
-          'rgba(203,213,225,0.5)'
-        ],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '65%',
-      plugins: {
-        legend: {
-          position: 'bottom'
-        },
-        title: {
-          display: true,
-          text: `Mutation Score (${mutationScore}%)`,
-          font: { family: 'Space Mono', size: 10 }
-        }
-      }
-    }
-  });
-} else if (runLang === 'c' && (runTool === 2 || runTool === 3)) {
-
-  if (!javaChartsContainer) return;
-
-  if (javaAssertionsChartInstance) javaAssertionsChartInstance.destroy();
-  if (javaCoverageChartInstance) javaCoverageChartInstance.destroy();
-
-  let instructions = 0;
-  let icount = 0;
-  let icov = 0;
-  let bcov = 0;
-  let tsolver = 0;
-
-  metrics.forEach(m => {
-
-    if (m.label === 'Instructions')
-      instructions = parseInt(m.value) || 0;
-
-    if (m.label === 'ICount')
-      icount = parseInt(m.value) || 0;
-
-    if (m.label === 'ICov %')
-      icov = parseFloat(m.value) || 0;
-
-    if (m.label === 'BCov %')
-      bcov = parseFloat(m.value) || 0;
-
-    if (m.label === 'TSolver %')
-      tsolver = parseFloat(m.value) || 0;
-  });
-
-  javaChartsContainer.style.display = 'grid';
-
-  // BAR CHART
-  const ctxAssert = document
-    .getElementById('javaAssertionsChart')
-    .getContext('2d');
-
-  javaAssertionsChartInstance = new Chart(ctxAssert, {
-    type: 'bar',
-    data: {
-      labels: ['Instructions', 'ICount'],
-      datasets: [{
-        label: 'Execution Metrics',
-        data: [instructions, icount],
-        backgroundColor: [
-          'rgba(59,130,246,0.7)',
-          'rgba(16,185,129,0.7)'
-        ],
-        borderWidth: 1,
-        borderRadius: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        title: {
-          display: true,
-          text: 'Execution Metrics',
-          font: { family: 'Space Mono', size: 10 }
-        }
-      }
-    }
-  });
-
-  // DOUGHNUT CHART
-  const ctxCov = document
-    .getElementById('javaCoverageChart')
-    .getContext('2d');
-
-  javaCoverageChartInstance = new Chart(ctxCov, {
-    type: 'doughnut',
-    data: {
-      labels: ['ICov %', 'BCov %'],
-      datasets: [{
-        data: [icov, bcov],
-        backgroundColor: [
-          'rgba(124,58,237,0.7)',
-          'rgba(249,115,22,0.7)'
-        ],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '65%',
-      plugins: {
-        legend: {
-          position: 'bottom'
-        },
-        title: {
-          display: true,
-          text: `Coverage (TSolver ${tsolver}%)`,
-          font: {
-            family: 'Space Mono',
-            size: 10
-          }
-        }
-      }
-    }
-  });
-} else if (runLang === 'c' && runTool === 5) {
-
-  if (!javaChartsContainer) return;
-
-  if (javaAssertionsChartInstance)
-    javaAssertionsChartInstance.destroy();
-
-  if (javaCoverageChartInstance)
-    javaCoverageChartInstance.destroy();
-
-  let killed = 0;
-  let total = 0;
-  let score = 0;
-
-  metrics.forEach(m => {
-
-    if (m.label === 'Killed Mutants')
-      killed = parseInt(m.value) || 0;
-
-    if (m.label === 'Total Mutants')
-      total = parseInt(m.value) || 0;
-
-    if (m.label === 'Mutation Score')
-      score = parseFloat(m.value) || 0;
-
-  });
-
-  const survived = Math.max(0, total - killed);
-
-  javaChartsContainer.style.display = 'grid';
-
-  // BAR CHART
-
-  const ctxAssert = document
-    .getElementById('javaAssertionsChart')
-    .getContext('2d');
-
-  javaAssertionsChartInstance = new Chart(ctxAssert, {
-    type: 'bar',
-    data: {
-      labels: ['Killed', 'Survived'],
-      datasets: [{
-        label: 'Mutants',
-        data: [killed, survived],
-        backgroundColor: [
-          'rgba(16,185,129,0.7)',
-          'rgba(239,68,68,0.7)'
-        ],
-        borderWidth: 1,
-        borderRadius: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        title: {
-          display: true,
-          text: 'Mutation Statistics',
-          font: {
-            family: 'Space Mono',
-            size: 10
-          }
-        }
-      }
-    }
-  });
-
-  // DOUGHNUT CHART
-
-  const ctxCov = document
-    .getElementById('javaCoverageChart')
-    .getContext('2d');
-
-  javaCoverageChartInstance = new Chart(ctxCov, {
-    type: 'doughnut',
-    data: {
-      labels: ['Mutation Score', 'Remaining'],
-      datasets: [{
-        data: [
-          score,
-          Math.max(0, 100 - score)
-        ],
-        backgroundColor: [
-          'rgba(124,58,237,0.7)',
-          'rgba(203,213,225,0.5)'
-        ],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '65%',
-      plugins: {
-        legend: {
-          position: 'bottom'
-        },
-        title: {
-          display: true,
-          text: `Mutation Score (${score}%)`,
-          font: {
-            family: 'Space Mono',
-            size: 10
-          }
-        }
-      }
-    }
-  });
-}
 }
 
 function handleOutputAreaWheel(event) {
@@ -1284,13 +1284,13 @@ function renderParams() {
   if (toolConfig.subtools && sub !== null) params = toolConfig.subtools[sub].params;
   const paramsBody = document.getElementById('params-body');
   const paramsRoot = document.getElementById('params-root');
-  
+
   if (!params || !params.length) {
     if (paramsRoot) paramsRoot.style.display = 'none';
     paramsBody.innerHTML = '';
     return;
   }
-  
+
   if (paramsRoot) paramsRoot.style.display = 'block';
   paramsBody.innerHTML = params.map((item) => `<div class="param-block"><label class="param-lbl">${item.l}</label><input class="param-in" id="${item.id}" type="${item.t}" placeholder="${item.ph}"></div>`).join('');
 }
@@ -1420,12 +1420,18 @@ async function doLogin() {
   const emailOrUsername = loginIdentifierEl.value.trim();
   const password = loginPasswordEl.value;
 
-  // if (!emailOrUsername || !password) {
-  //   appendLine('Please enter email/username and password.', 'var(--orange)');
-  //   return;
-  // }
+  const loginBtn = document.getElementById('loginBtn');
+  const authNote = document.getElementById('authNote');
 
   try {
+    // Loading State
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = `
+      <span class="btn-spinner"></span>
+      Logging in...
+    `;
+
+    authNote.innerHTML = '';
     setStatus('Logging in...');
     appendLine('▶ Attempting login...', 'var(--ink)');
 
@@ -1438,26 +1444,59 @@ async function doLogin() {
     const data = await response.json().catch(() => null);
 
     if (!response.ok || !data?.success) {
-      throw new Error(data?.message || `Login failed (${response.status})`);
+      throw new Error(
+        data?.message ||
+        data?.error ||
+        'Invalid email/username or password'
+      );
     }
 
     currentAuth = {
       token: data?.data?.token || null,
       user: data?.data?.user || null
     };
+
     saveAuth(currentAuth);
     refreshAuthUi();
 
     if (isAllowedUser(currentAuth.user)) {
-      appendLine(`✓ Login successful. Welcome ${currentAuth.user.name || currentAuth.user.email || 'user'}.`, 'var(--green)');
+      authNote.innerHTML = `
+        <div class="auth-success">
+          ✓ Login successful. Welcome ${currentAuth.user.name || currentAuth.user.email}.
+        </div>
+      `;
+
+      appendLine(
+        `✓ Login successful. Welcome ${currentAuth.user.name || currentAuth.user.email || 'user'}.`,
+        'var(--green)'
+      );
+
       setStatus('Authenticated');
     } else {
-      appendLine('✓ Login successful, but access is restricted.', 'var(--orange)');
-      setStatus('Login successful, access restricted');
+      authNote.innerHTML = `
+        <div class="auth-warning">
+          Login successful, but access is restricted.
+        </div>
+      `;
+
+      setStatus('Access Restricted');
     }
+
   } catch (error) {
+    console.error(error);
+
+    authNote.innerHTML = `
+      <div class="auth-error">
+        ${error.message || 'Login failed'}
+      </div>
+    `;
+
     appendLine(error.message || 'Login failed.', 'var(--orange)');
     setStatus(`❌ ${error.message || 'Login failed'}`);
+
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.innerHTML = 'Sign In';
   }
 }
 
@@ -1537,10 +1576,10 @@ async function doRun() {
   activeRunTool = payload.toolIndex;
   activeRunSub = payload.subtoolIndex;
   setStatus('Starting Docker workflow...');
-  
+
   ofStatusEl.innerHTML = '<span class="exec-spinner"></span> Executing...';
   ofStatusEl.style.color = 'var(--ink-2)';
-  
+
   const runBtn = document.querySelector('.ab-run');
   if (runBtn) {
     runBtn.innerHTML = '<span class="exec-spinner" style="border-color: rgba(255,255,255,0.3); border-top-color: #fff;"></span> Executing...';
@@ -1584,7 +1623,7 @@ async function doRun() {
   } finally {
     isRunning = false;
     updateAnalyticsModal();
-    
+
     const runBtn = document.querySelector('.ab-run');
     if (runBtn) {
       runBtn.innerHTML = '▶ Execute';
@@ -1682,7 +1721,7 @@ async function doCompile() {
   } finally {
     isRunning = false;
     updateAnalyticsModal();
-    
+
     if (compileBtn) {
       compileBtn.innerHTML = 'Compile';
       compileBtn.style.pointerEvents = 'auto';
@@ -1918,22 +1957,22 @@ async function openSamplesModal() {
     appendLine('Samples are only available in Electron mode.', 'var(--orange)');
     return;
   }
-  
+
   samplesListEl.innerHTML = '<div style="text-align:center; padding: 20px; font-family: var(--mono); font-size: 11px; color: var(--ink-3);">Loading samples...</div>';
   samplesModalWrapEl.classList.add('open');
-  
+
   try {
     const res = await window.electronAPI.listSamples({ language: lang, toolIndex: tool });
     if (!res.success) {
       samplesListEl.innerHTML = `<div style="color: var(--orange); padding: 10px; font-family: var(--mono); font-size: 11px;">Error: ${res.message}</div>`;
       return;
     }
-    
+
     if (!res.files || !res.files.length) {
       samplesListEl.innerHTML = '<div style="text-align:center; padding: 20px; font-family: var(--mono); font-size: 11px; color: var(--ink-3);">No samples found for this tool.</div>';
       return;
     }
-    
+
     samplesListEl.innerHTML = res.files.map(file => {
       const icon = file.kind === 'folder' ? '📁' : '📄';
       const safePath = file.path.replace(/\\/g, '/');
@@ -1993,7 +2032,7 @@ if (outputActions && !document.getElementById('view-output-btn')) {
 
       Object.assign(toast.style, {
         position: 'fixed',
-        top:'130px',
+        top: '130px',
         right: '40px',
         background: '#333',
         color: '#fff',
