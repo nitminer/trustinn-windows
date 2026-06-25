@@ -9,6 +9,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap"
     rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
   <style>
     *,
     *::before,
@@ -1644,7 +1645,30 @@
       <div class="h-crumb" id="authStatusText">Not logged in</div>
     </div>
     <div class="h-update-section">
-      <button id="authBtn" class="h-auth-btn" type="button">Login</button>
+      <div style="position: relative;" id="profileWrap">
+        <button id="authBtn" class="h-auth-btn" type="button">Login</button>
+        <div id="profileDropdown"
+          style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; width: 220px; background: #fff; border: 1px solid rgba(203,213,225,0.7); border-radius: 12px; box-shadow: 0 12px 30px rgba(15,23,42,0.15); z-index: 1000; padding: 12px; flex-direction: column; gap: 8px;">
+          <div style="font-family: var(--sans); font-size: 14px; font-weight: 700; color: var(--ink);" id="profName">
+            Name</div>
+          <div style="font-family: var(--mono); font-size: 10px; color: var(--ink-3);" id="profUsername">@username</div>
+          <div style="height: 1px; background: rgba(203,213,225,0.6); margin: 4px 0;"></div>
+          <div
+            style="font-size: 11px; font-family: var(--sans); font-weight: 600; color: var(--ink-2); display: flex; justify-content: space-between;">
+            <span>Premium:</span>
+            <span id="profPremium">No</span>
+          </div>
+          <div
+            style="font-size: 11px; font-family: var(--sans); font-weight: 600; color: var(--ink-2); display: flex; justify-content: space-between;">
+            <span>Trials Left:</span>
+            <span id="profTrials">0</span>
+          </div>
+          <div style="height: 1px; background: rgba(203,213,225,0.6); margin: 4px 0;"></div>
+          <button id="profLogoutBtn"
+            style="padding: 8px; background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; border-radius: 8px; font-family: var(--sans); font-weight: 600; font-size: 11px; cursor: pointer; transition: all 0.15s ease;"
+            onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">Sign Out</button>
+        </div>
+      </div>
       <div class="h-update-status" id="updateStatus">Initializing...</div>
       <div class="h-progress-bar" id="progressBar" style="display: none;">
         <div class="h-progress-fill" id="progressFill"></div>
@@ -1676,7 +1700,7 @@
             </div>
             <div class="lang-card" onclick="setLang('solidity',this)">
               <div class="lang-card-num">04</div>
-              <div class="lang-card-name">Solidity</div>
+              <div class="lang-card-name">Smart Contract</div>
               <div class="lang-card-tick">✓</div>
             </div>
           </div>
@@ -1716,9 +1740,21 @@
               <!-- <div class="file-sub">.c .h .java .py .sol</div> -->
             </div>
           </button>
-          <div id="file-selection-label"
-            style="font-family:var(--mono);font-size:9px;color:#64748b;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">
-            No file selected</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div id="file-selection-label"
+              style="font-family:var(--mono);font-size:9px;color:#64748b;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">
+              No file selected</div>
+            <button id="clear-custom-code-btn"
+              style="display:none;background:transparent;border:none;font-size:10px;color:var(--orange);cursor:pointer;font-family:var(--mono);text-decoration:underline;"
+              onclick="clearCustomCode()">Clear</button>
+          </div>
+          <button type="button" class="file-btn" id="fb-write-code" onclick="openCodeEditorModal()">
+            <div class="file-icon">✏️</div>
+            <div class="file-text-wrap">
+              <div class="file-main">Write Your Own Code</div>
+              <div class="file-sub">Open editor to write code</div>
+            </div>
+          </button>
           <div id="fdir-wrap" style="display:none;">
             <button type="button" class="file-btn" id="fb2">
               <div class="file-icon">⊞</div>
@@ -1873,6 +1909,37 @@
     </div>
   </div>
 
+  <div class="modal-wrap" id="duplicateModalWrap"
+    style="display:none;z-index:9999;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);"
+    onclick="if(event.target===this) this.style.display='none'">
+    <div class="modal-box" style="width:400px;max-width:90vw;">
+      <div class="modal-top" style="border-bottom: 1px solid #f1f5f9;">
+        <div class="modal-top-text"
+          style="display:flex;align-items:center;gap:8px;color:#1a1a2e;font-family:var(--sans);font-weight:700;">
+          <span style="font-size:18px;">⚠️</span> Session Conflict
+        </div>
+      </div>
+      <div class="modal-inner" style="padding:20px;">
+        <p style="color:#64748b;font-size:14px;margin-bottom:16px;line-height:1.5;">
+          This account is already active on another device.<br />
+          Log it out to continue here.
+        </p>
+        <div id="duplicate-devices-list"
+          style="background:#fffbeb;border:1px solid #fde68c;border-radius:12px;padding:14px;color:#1a1a2e;font-size:14px;">
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <button
+            style="flex:1;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;color:#64748b;font-weight:600;cursor:pointer;"
+            onclick="document.getElementById('duplicateModalWrap').style.display='none'">Cancel</button>
+          <button id="forceLogoutBtn"
+            style="flex:1;padding:12px;background:linear-gradient(135deg, #ef4444, #dc2626);border:none;border-radius:12px;color:#fff;font-weight:600;cursor:pointer;">Logout
+            & Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
   <div class="modal-wrap" id="samples-modal-wrap" onclick="samplesBgClose(event)">
     <div class="modal-box">
       <div class="modal-top">
@@ -1886,9 +1953,30 @@
     </div>
   </div>
 
-  <script src="./renderer.js">
+  <div id="code-editor-modal"
+    style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.8);z-index:9999;align-items:center;justify-content:center;">
+    <div
+      style="background:#fff;width:80%;height:80%;border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,0.2);">
+      <div
+        style="padding:16px;border-bottom:1px solid rgba(148,163,184,0.22);display:flex;justify-content:space-between;align-items:center;background:var(--bg);">
+        <h3 style="font-family:var(--sans);font-weight:700;color:var(--ink);">Write Code</h3>
+        <button onclick="closeCodeEditorModal()"
+          style="background:transparent;border:none;font-size:18px;cursor:pointer;color:var(--ink-3);">&times;</button>
+      </div>
+      <div id="monaco-container" style="flex:1;width:100%;"></div>
+      <div
+        style="padding:16px;border-top:1px solid rgba(148,163,184,0.22);display:flex;justify-content:flex-end;gap:12px;background:var(--bg);">
+        <button class="ab-btn ab-compile" onclick="runCustomCode('compile')"
+          style="min-height:36px;padding:0 16px;">Compile</button>
+        <button class="ab-btn ab-run" onclick="runCustomCode('execute')" style="min-height:36px;padding:0 16px;">▶
+          Execute</button>
+        <button class="ab-btn" onclick="saveCustomCodeToSource()"
+          style="min-height:36px;padding:0 16px;background:var(--ink-2);color:#fff;">Save &amp; Close</button>
+      </div>
+    </div>
+  </div>
 
-  </script>
+  <script src="./renderer.js"></script>
 </body>
 
 </html>

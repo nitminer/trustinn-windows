@@ -27,9 +27,18 @@ const authStatusTextEl = document.getElementById('authStatusText');
 const authHeadingTextEl = document.getElementById('authHeadingText');
 const authNoteEl = document.getElementById('authNote');
 const lockedCardEl = document.getElementById('lockedCard');
+const profNameEl = document.getElementById('profName');
+const profUsernameEl = document.getElementById('profUsername');
+const profPremiumEl = document.getElementById('profPremium');
+const profTrialsEl = document.getElementById('profTrials');
+const profLogoutBtnEl = document.getElementById('profLogoutBtn');
+const profileDropdownEl = document.getElementById('profileDropdown');
 
 const AUTH_KEY = 'nitminer_auth_v1';
-const LOGIN_URL = 'https://api.nitminer.com/api/auth/login';
+const LOGIN_URL = 'https://www.nitminer.com/api/auth/login';
+const CONSUME_TRIAL_URL = 'https://www.nitminer.com/api/auth/consume-trail';
+const CHECK_DUPLICATE_URL = 'https://www.nitminer.com/api/auth/session/check-duplicate';
+const INVALIDATE_OTHERS_URL = 'https://www.nitminer.com/api/auth/session/invalidate-others';
 const ADMIN_EMAIL = 'admin@nitminer.com';
 
 const TOOLS = {
@@ -1332,6 +1341,28 @@ function updateAnalyticsModal() {
 function updateSelectedSourceLabels() {
   const fileLabel = document.getElementById('file-selection-label');
   const folderLabel = document.getElementById('folder-selection-label');
+  const fb1 = document.getElementById('fb1');
+  const fb2 = document.getElementById('fb2');
+  const fb3 = document.getElementById('fb3');
+  const clearBtn = document.getElementById('clear-custom-code-btn');
+
+  if (selectedSource.kind === 'custom-code') {
+    if (fileLabel) fileLabel.textContent = 'Custom Code Active';
+    if (fileLabel) fileLabel.style.color = 'var(--orange)';
+    if (folderLabel) folderLabel.textContent = 'No folder selected';
+    if (fb1) { fb1.disabled = true; fb1.style.opacity = '0.5'; }
+    if (fb2) { fb2.disabled = true; fb2.style.opacity = '0.5'; }
+    if (fb3) { fb3.disabled = true; fb3.style.opacity = '0.5'; }
+    if (clearBtn) clearBtn.style.display = 'inline-block';
+    return;
+  }
+
+  if (fileLabel) fileLabel.style.color = '';
+  if (fb1) { fb1.disabled = false; fb1.style.opacity = '1'; }
+  if (fb2) { fb2.disabled = false; fb2.style.opacity = '1'; }
+  if (fb3) { fb3.disabled = false; fb3.style.opacity = '1'; }
+  if (clearBtn) clearBtn.style.display = 'none';
+
   if (selectedSource.kind === 'folder') {
     if (folderLabel) folderLabel.textContent = selectedSource.name || 'Folder';
     if (fileLabel) fileLabel.textContent = 'File not selected';
@@ -1344,8 +1375,16 @@ function updateSelectedSourceLabels() {
 function setAuthUI(user) {
   if (user) {
     authStatusTextEl.textContent = `Logged in as ${user.name || user.email || 'user'}`;
-    authBtnEl.textContent = 'Logout';
+    authBtnEl.textContent = 'Profile';
     logoutBtnEl.style.display = 'inline-flex';
+    
+    if (profNameEl) profNameEl.textContent = user.name || user.firstName || 'User';
+    if (profUsernameEl) profUsernameEl.textContent = `@${user.username || user.email.split('@')[0]}`;
+    if (profPremiumEl) {
+      profPremiumEl.textContent = user.isPremium ? 'Yes' : 'No';
+      profPremiumEl.style.color = user.isPremium ? 'var(--green)' : 'var(--ink-3)';
+    }
+    if (profTrialsEl) profTrialsEl.textContent = user.trialCount || 0;
   } else {
     authStatusTextEl.textContent = 'Not logged in';
     authBtnEl.textContent = 'Login';
@@ -1356,6 +1395,7 @@ function setAuthUI(user) {
 function saveAuth(data) {
   localStorage.setItem(AUTH_KEY, JSON.stringify(data));
 }
+
 
 function loadAuth() {
   try {
@@ -1368,8 +1408,7 @@ function loadAuth() {
 function clearAuth() {
   localStorage.removeItem(AUTH_KEY);
   currentAuth = null;
-  setAuthUI(null);
-  setUiUnlocked(false);
+  refreshAuthUi();
 }
 
 function isAllowedUser(user) {
@@ -1422,28 +1461,194 @@ async function doLogin() {
 
   const loginBtn = document.getElementById('loginBtn');
   const authNote = document.getElementById('authNote');
+  const duplicateModalWrap = document.getElementById('duplicateModalWrap');
+  const listEl = document.getElementById('duplicate-devices-list');
 
   try {
-    // Loading State
+    if (!emailOrUsername || !password) {
+      throw new Error('Please enter username/email and password.');
+    }
+
     loginBtn.disabled = true;
-    loginBtn.innerHTML = `
-      <span class="btn-spinner"></span>
-      Logging in...
-    `;
-
+    loginBtn.innerHTML = '<span class="btn-spinner"></span> Checking...';
     authNote.innerHTML = '';
-    setStatus('Logging in...');
-    appendLine('▶ Attempting login...', 'var(--ink)');
+    setStatus('Checking session...');
+    appendLine('▶ Checking session status...', 'var(--ink)');
 
+    const deviceInfo = await buildDeviceInfo();
+    const isEmail = emailOrUsername.includes('@');
+
+    const payload = {
+      ...(isEmail
+        ? { email: emailOrUsername.toLowerCase() }
+        : { username: emailOrUsername }),
+      password,
+      rememberMe: true,
+      ...deviceInfo
+    };
+
+    // console.log('Login payload device info:', {
+    //   deviceId: payload.deviceId,
+    //   deviceFingerprint: payload.deviceFingerprint,
+    //   browser: payload.browser,
+    //   os: payload.os,
+    //   deviceName: payload.deviceName
+    // });
+
+    const duplicateResponse = await fetch(LOGIN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const duplicateData = await duplicateResponse.json().catch(() => null);
+    // console.log('Login check response:', duplicateResponse.status, duplicateData);
+
+    if (!duplicateResponse.ok && !duplicateData?.isDuplicate) {
+      throw new Error(
+        duplicateData?.error ||
+        duplicateData?.message ||
+        'Invalid email/username or password'
+      );
+    }
+
+    if (duplicateData?.isDuplicate) {
+      window.pendingLoginPayload = payload;
+      window.pendingDeviceInfo = deviceInfo;
+
+      const sessions = Array.isArray(duplicateData.existingSessions)
+        ? duplicateData.existingSessions
+        : [];
+
+      // console.log('Existing sessions before sort:', sessions);
+
+      const sortedSessions = [...sessions].sort((a, b) => {
+        const aTime = a?.loginTime ? new Date(a.loginTime).getTime() : 0;
+        const bTime = b?.loginTime ? new Date(b.loginTime).getTime() : 0;
+        return bTime - aTime;
+      });
+
+      // console.log('Existing sessions after sort:', sortedSessions);
+
+      const sessionToShow = sortedSessions[0] || null;
+
+      if (listEl) {
+        if (sessionToShow) {
+          listEl.innerHTML = `
+            <div style="font-weight:600;margin-bottom:3px;">
+              ${sessionToShow.deviceName || 'Unknown Device'}
+            </div>
+            <div style="color:#64748b;font-size:12px;">
+              ${sessionToShow.browser || 'Unknown'} · ${sessionToShow.os || 'Unknown'}
+            </div>
+            ${sessionToShow.loginTime
+              ? `<div style="color:#64748b;font-size:12px;margin-top:4px;">
+                   Since ${new Date(sessionToShow.loginTime).toLocaleString()}
+                 </div>`
+              : ''
+            }
+          `;
+        } else {
+          listEl.innerHTML = `
+            <div style="font-weight:600;margin-bottom:3px;">Another active session found</div>
+            <div style="color:#64748b;font-size:12px;">Device details unavailable</div>
+          `;
+        }
+      }
+
+      if (duplicateModalWrap) {
+        duplicateModalWrap.style.display = 'flex';
+      }
+
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = 'Sign In';
+      setStatus('Session Conflict');
+      return;
+    }
+
+    await doLoginFinal(payload);
+  } catch (error) {
+    handleLoginError(error);
+  }
+}
+async function handleForceLogoutAndContinue() {
+  const btn = document.getElementById('forceLogoutBtn');
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="btn-spinner"></span> Logging out...';
+  }
+
+  try {
+    if (!window.pendingLoginPayload || !window.pendingDeviceInfo?.deviceId) {
+      throw new Error('Missing pending login data.');
+    }
+
+    const invalidatePayload = {
+      ...(window.pendingLoginPayload.email
+        ? { email: window.pendingLoginPayload.email }
+        : { username: window.pendingLoginPayload.username }),
+      password: window.pendingLoginPayload.password,
+      rememberMe: window.pendingLoginPayload.rememberMe,
+      deviceId: window.pendingDeviceInfo.deviceId,
+    };
+
+    console.log('Invalidate payload:', invalidatePayload);
+
+    const invalidateResponse = await fetch(INVALIDATE_OTHERS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(invalidatePayload)
+    });
+
+    const invalidateData = await invalidateResponse.json().catch(() => ({}));
+    // console.log('Invalidate response:', invalidateResponse.status, invalidateData);
+
+    if (!invalidateResponse.ok) {
+      throw new Error(invalidateData.error || 'Failed to logout existing device.');
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    document.getElementById('duplicateModalWrap').style.display = 'none';
+    await doLoginFinal(window.pendingLoginPayload);
+  } catch (err) {
+    console.error('Force logout failed:', err);
+    handleLoginError(err);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = 'Logout & Continue';
+    }
+  }
+}
+
+
+// Attach event listener
+document.addEventListener('DOMContentLoaded', () => {
+  const forceBtn = document.getElementById('forceLogoutBtn');
+  if (forceBtn) forceBtn.addEventListener('click', handleForceLogoutAndContinue);
+});
+
+async function doLoginFinal(payload) {
+  const loginBtn = document.getElementById('loginBtn');
+  const authNote = document.getElementById('authNote');
+
+  loginBtn.disabled = true;
+  loginBtn.innerHTML = '<span class="btn-spinner"></span> Logging in...';
+  setStatus('Logging in...');
+  appendLine('▶ Attempting login...', 'var(--ink)');
+
+  try {
     const response = await fetch(LOGIN_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ emailOrUsername, password })
+      body: JSON.stringify(payload)
     });
 
     const data = await response.json().catch(() => null);
 
-    if (!response.ok || !data?.success) {
+    if (!response.ok) {
       throw new Error(
         data?.message ||
         data?.error ||
@@ -1452,11 +1657,14 @@ async function doLogin() {
     }
 
     currentAuth = {
-      token: data?.data?.token || null,
-      user: data?.data?.user || null
+      token: data?.token || data?.data?.token || null,
+      user: data?.user || data?.data?.user || null
     };
 
+
+
     saveAuth(currentAuth);
+
     refreshAuthUi();
 
     if (isAllowedUser(currentAuth.user)) {
@@ -1483,21 +1691,81 @@ async function doLogin() {
     }
 
   } catch (error) {
-    console.error(error);
+    handleLoginError(error);
+  } finally {
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = 'Sign In';
+    }
+  }
+}
 
+function handleLoginError(error) {
+  console.error(error);
+  const authNote = document.getElementById('authNote');
+  if (authNote) {
     authNote.innerHTML = `
       <div class="auth-error">
         ${error.message || 'Login failed'}
       </div>
     `;
-
-    appendLine(error.message || 'Login failed.', 'var(--orange)');
-    setStatus(`❌ ${error.message || 'Login failed'}`);
-
-  } finally {
+  }
+  appendLine(error.message || 'Login failed.', 'var(--orange)');
+  setStatus(`❌ ${error.message || 'Login failed'}`);
+  const loginBtn = document.getElementById('loginBtn');
+  if (loginBtn) {
     loginBtn.disabled = false;
     loginBtn.innerHTML = 'Sign In';
   }
+}
+
+// Device Fingerprinting
+function getOrCreateSharedDeviceId(fingerprint) {
+  let deviceId = localStorage.getItem('nitminer_device_id') || '';
+  if (!deviceId) {
+    deviceId = 'nmdev_' + fingerprint.substring(0, 24);
+    localStorage.setItem('nitminer_device_id', deviceId);
+  }
+  return deviceId;
+}
+
+function parseUserAgent() {
+  const ua = navigator.userAgent;
+  const browser = ua.includes('Firefox') ? 'Firefox'
+    : ua.includes('Edg') ? 'Edge'
+      : ua.includes('Chrome') ? 'Chrome'
+        : ua.includes('Safari') ? 'Safari' : 'Unknown';
+  const os = ua.includes('Windows') ? 'Windows'
+    : ua.includes('Mac') ? 'macOS'
+      : ua.includes('Android') ? 'Android'
+        : ua.includes('iPhone') || ua.includes('iPad') ? 'iOS'
+          : ua.includes('Linux') ? 'Linux' : 'Unknown';
+  return { browser, os };
+}
+
+async function createDeviceFingerprint() {
+  try {
+    const raw = JSON.stringify({
+      ua: navigator.userAgent,
+      language: navigator.language,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      screen: window.screen ? `${window.screen.width}x${window.screen.height}` : 'unknown',
+      colorDepth: window.screen ? window.screen.colorDepth : 'unknown',
+    });
+    const input = new TextEncoder().encode(raw);
+    const hash = await crypto.subtle.digest('SHA-256', input);
+    return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    return Date.now() + '_' + Math.random().toString(36).slice(2, 14);
+  }
+}
+
+async function buildDeviceInfo() {
+  const { browser, os } = parseUserAgent();
+  const deviceFingerprint = await createDeviceFingerprint();
+  const deviceId = getOrCreateSharedDeviceId(deviceFingerprint);
+  return { deviceId, deviceFingerprint, browser, os, deviceName: `${os} - ${browser}` };
 }
 
 function doLogout() {
@@ -1569,8 +1837,14 @@ async function doRun() {
     return;
   }
 
-  resetRunOutput();
   isRunning = true;
+  const consumed = await consumeTrialAction();
+  if (!consumed) {
+    isRunning = false;
+    return;
+  }
+
+  resetRunOutput();
   latestRunResult = null;
   activeRunLang = payload.language;
   activeRunTool = payload.toolIndex;
@@ -1667,8 +1941,14 @@ async function doCompile() {
     return;
   }
 
-  resetRunOutput();
   isRunning = true;
+  const consumed = await consumeTrialAction();
+  if (!consumed) {
+    isRunning = false;
+    return;
+  }
+
+  resetRunOutput();
   latestRunResult = null;
   activeRunLang = payload.language;
   activeRunTool = 'compile';
@@ -1928,6 +2208,7 @@ window.setLang = function setLang(language, button) {
   tool = 0;
   sub = null;
   resetRunOutput();
+  clearCustomCode();
   document.querySelectorAll('.lang-card').forEach((card) => card.classList.remove('active'));
   if (button && button.classList) button.classList.add('active');
   else {
@@ -2062,10 +2343,30 @@ if (outputActions && !document.getElementById('view-output-btn')) {
   outputActions.insertBefore(viewButton, outputActions.children[1] || null);
 }
 
-authBtnEl.addEventListener('click', () => {
-  if (appUnlocked) doLogout();
+authBtnEl.addEventListener('click', (e) => {
+  if (appUnlocked) {
+    if (profileDropdownEl) {
+      profileDropdownEl.style.display = profileDropdownEl.style.display === 'none' ? 'flex' : 'none';
+      e.stopPropagation();
+    }
+  }
   else authWrapEl.classList.add('open');
 });
+
+document.addEventListener('click', (e) => {
+  if (profileDropdownEl && profileDropdownEl.style.display !== 'none') {
+    if (!profileDropdownEl.contains(e.target) && e.target !== authBtnEl) {
+      profileDropdownEl.style.display = 'none';
+    }
+  }
+});
+
+if (profLogoutBtnEl) {
+  profLogoutBtnEl.addEventListener('click', () => {
+    if (profileDropdownEl) profileDropdownEl.style.display = 'none';
+    doLogout();
+  });
+}
 loginBtnEl.addEventListener('click', doLogin);
 logoutBtnEl.addEventListener('click', doLogout);
 loginPasswordEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
@@ -2081,4 +2382,240 @@ render();
 updateSelectedSourceLabels();
 
 currentAuth = loadAuth();
-refreshAuthUi();
+
+if (currentAuth && currentAuth.token) {
+  setUiUnlocked(false);
+  if (authHeadingTextEl) authHeadingTextEl.textContent = 'Verifying session...';
+  if (authNoteEl) authNoteEl.innerHTML = '<span class="exec-spinner" style="border-color: rgba(255,255,255,0.3); border-top-color: #fff; width: 14px; height: 14px; display: inline-block; border-width: 2px;"></span> Please wait while we verify your session...';
+
+  const authBody = document.querySelector('.auth-body');
+  const authDivider = document.querySelector('.auth-divider');
+  if (authBody) authBody.style.display = 'none';
+  if (authDivider) authDivider.style.display = 'none';
+
+  validateSession().then(isValid => {
+    if (authBody) authBody.style.display = 'block';
+    if (authDivider) authDivider.style.display = 'block';
+
+    if (!isValid) {
+      appendLine('Session expired or invalid. Please log in again.', 'var(--orange)');
+      doLogout();
+      showAuthOverlay();
+    } else {
+      refreshAuthUi();
+    }
+  });
+} else {
+  refreshAuthUi();
+}
+
+let monacoEditorInstance = null;
+let isCustomCodeActive = false;
+let lastMonacoLang = null;
+
+function applyMonacoLanguageAndSample() {
+  if (!monacoEditorInstance) return;
+  const langMap = { 'c': 'c', 'java': 'java', 'python': 'python', 'solidity': 'sol' };
+  const editorLang = langMap[lang] || 'plaintext';
+  monaco.editor.setModelLanguage(monacoEditorInstance.getModel(), editorLang);
+
+  if (lastMonacoLang !== lang || monacoEditorInstance.getValue().trim() === '') {
+    let sample = '';
+    if (lang === 'c') sample = '#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}';
+    else if (lang === 'java') sample = 'public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}';
+    else if (lang === 'python') sample = 'print("Hello, World!")';
+    else if (lang === 'solidity') sample = '// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\n\ncontract HelloWorld {\n    string public greet = "Hello World!";\n}';
+    monacoEditorInstance.setValue(sample);
+    lastMonacoLang = lang;
+  }
+}
+
+function initMonaco() {
+  if (monacoEditorInstance) {
+    applyMonacoLanguageAndSample();
+    return;
+  }
+  require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
+  require(['vs/editor/editor.main'], function () {
+    monacoEditorInstance = monaco.editor.create(document.getElementById('monaco-container'), {
+      value: "",
+      language: "c",
+      theme: "vs",
+      automaticLayout: true
+    });
+    applyMonacoLanguageAndSample();
+  });
+}
+
+function openCodeEditorModal() {
+  document.getElementById('code-editor-modal').style.display = 'flex';
+  initMonaco();
+}
+
+function closeCodeEditorModal() {
+  document.getElementById('code-editor-modal').style.display = 'none';
+}
+
+async function saveCustomCodeContent() {
+  if (!monacoEditorInstance) return false;
+  const code = monacoEditorInstance.getValue();
+  if (!code.trim()) return false;
+
+  const result = await window.electronAPI.saveCustomCode({ code, language: lang });
+  if (result) {
+    selectedSource = { kind: 'custom-code', path: result.path, name: 'Custom Code' };
+    updateSelectedSourceLabels();
+    return true;
+  }
+  return false;
+}
+
+async function runCustomCode(action) {
+  const saved = await saveCustomCodeContent();
+  if (saved) {
+    closeCodeEditorModal();
+    if (action === 'compile') doCompile();
+    else doRun();
+  }
+}
+
+async function saveCustomCodeToSource() {
+  await saveCustomCodeContent();
+  closeCodeEditorModal();
+}
+
+function clearCustomCode() {
+  selectedSource = { kind: 'file', path: null, name: null };
+  if (monacoEditorInstance) {
+    monacoEditorInstance.setValue('');
+  }
+  updateSelectedSourceLabels();
+}
+
+async function validateSession() {
+  if (!currentAuth?.token) return false;
+
+  let deviceId = localStorage.getItem('nitminer_device_id');
+  if (!deviceId) {
+    const fingerprint = await createDeviceFingerprint();
+    deviceId = getOrCreateSharedDeviceId(fingerprint);
+  }
+
+  try {
+    if (currentAuth.user?.email || currentAuth.user?.username) {
+      const duplicateResponse = await fetch(CHECK_DUPLICATE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: currentAuth.user.email,
+          username: currentAuth.user.username,
+          deviceId: deviceId
+        })
+      });
+      const duplicateData = await duplicateResponse.json().catch(() => null);
+      if (duplicateData?.isDuplicate) {
+        return false;
+      }
+    }
+
+    const response = await fetch(
+      'https://www.nitminer.com/api/auth/validate-token',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentAuth.token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          token: currentAuth.token,
+          deviceId: deviceId
+        })
+      }
+    );
+
+    // Parse only once
+    const data = await response.json().catch(() => null);
+
+    // console.log('Validation response:', response.status, data);
+
+    // Unauthorized / Forbidden
+    if (response.status === 401 || response.status === 403) {
+      return false;
+    }
+
+    // Any other failed response
+    if (!response.ok) {
+      return false;
+    }
+
+    // Backend returns { valid: true/false }
+    if (data?.valid === false) {
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Session validation error:', err);
+
+    // Allow temporary network failures
+    return true;
+  }
+}
+
+async function consumeTrialAction() {
+  if (!currentAuth || !currentAuth.user) return false;
+
+  const isValid = await validateSession();
+  if (!isValid) {
+    appendLine('Session expired or logged out from another device.', 'var(--orange)');
+    doLogout();
+    showAuthOverlay();
+    return false;
+  }
+
+  if (currentAuth.user.isPremium) return true;
+
+  if (currentAuth.user.trialCount <= 0) {
+    appendLine('You have no remaining trials. Please upgrade to premium.', 'var(--orange)');
+    showAuthOverlay();
+    return false;
+  }
+
+  try {
+    const response = await fetch(CONSUME_TRIAL_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentAuth.token}`
+      },
+      body: JSON.stringify({ userId: currentAuth.user.id || currentAuth.user._id })
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      appendLine('Session expired or logged out from another device.', 'var(--orange)');
+      doLogout();
+      showAuthOverlay();
+      return false;
+    }
+
+    const data = await response.json().catch(() => null);
+
+    if (response.ok) {
+      if (data && data.trialCount !== undefined) {
+        currentAuth.user.trialCount = data.trialCount;
+      } else {
+        currentAuth.user.trialCount = Math.max(0, currentAuth.user.trialCount - 1);
+      }
+      saveAuth(currentAuth);
+      refreshAuthUi();
+      return true;
+    }
+
+    appendLine(`Failed to consume trial: ${data?.message || data?.error || 'Server error'}`, 'var(--orange)');
+    return false;
+  } catch (error) {
+    appendLine(`Network error verifying trial: ${error.message}`, 'var(--orange)');
+    return false;
+  }
+}

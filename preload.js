@@ -38,5 +38,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openOutputFolder: (folderPath) => ipcRenderer.invoke('tool:open-output-folder', folderPath),
   copyText: (text) => ipcRenderer.invoke('tool:copy-text', text),
   getToolAnalytics: (folderPath) => ipcRenderer.invoke('tool:get-analytics', folderPath),
-  listSamples: (payload) => ipcRenderer.invoke('tool:list-samples', payload)
+  listSamples: (payload) => ipcRenderer.invoke('tool:list-samples', payload),
+  saveCustomCode: (payload) => ipcRenderer.invoke('tool:save-custom-code', payload)
 });

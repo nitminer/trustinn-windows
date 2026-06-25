@@ -1,6 +1,7 @@
 const { app, BrowserWindow, clipboard, dialog, ipcMain, shell } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { runDockerTool, stopActiveRun, validateTool, compileDockerTool } = require('./toolRunner');
 
@@ -102,7 +103,7 @@ ipcMain.handle('get-app-version', () => app.getVersion());
 ipcMain.handle('tool:pick-file', async (_event, language) => {
   let exts = ['c', 'h', 'java', 'py', 'sol'];
   let filterName = 'Supported files';
-  
+
   if (language === 'c') {
     exts = ['c', 'h'];
     filterName = 'C files';
@@ -283,4 +284,30 @@ ipcMain.handle('tool:list-samples', (_event, payload) => {
 ipcMain.on('restart-and-update', () => {
   console.log('[Auto-Update] Installing update and restarting...');
   autoUpdater.quitAndInstall();
+});
+
+ipcMain.handle('tool:save-custom-code', async (_event, payload) => {
+  const { code, language } = payload;
+  const extMap = { 'c': 'c', 'java': 'java', 'python': 'py', 'solidity': 'sol' };
+  const ext = extMap[language] || 'txt';
+
+  let tempDir = os.tmpdir();
+  let fileName = `trustinn-custom-${Date.now()}.${ext}`;
+
+  if (language === 'java') {
+    const classMatch = code.match(/public\s+class\s+([A-Za-z_][A-Za-z0-9_]*)/);
+    const className = classMatch ? classMatch[1] : 'Main';
+    // Java strictly requires the file name to match the public class name
+    tempDir = path.join(os.tmpdir(), `trustinn-java-${Date.now()}`);
+    fs.mkdirSync(tempDir, { recursive: true });
+    fileName = `${className}.java`;
+  }
+
+  const tempFile = path.join(tempDir, fileName);
+  fs.writeFileSync(tempFile, code, 'utf8');
+
+  return {
+    path: tempFile,
+    name: fileName
+  };
 });
